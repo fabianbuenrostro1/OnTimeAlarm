@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		25F520E9E6714B5C9961FC28 /* OnTimeAlarmApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B07BCBCD4CC327E443EAA179 /* OnTimeAlarmApp.swift */; };
 		28BF1472B144E03ADE087393 /* SavedPlace.swift in Sources */ = {isa = PBXBuildFile; fileRef = D22479293673B91377874F84 /* SavedPlace.swift */; };
+		29E2F2B441CFFD426073B459 /* LocationSelectionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8218DA1857045E26C41E6768 /* LocationSelectionSheet.swift */; };
 		306854E41A7C28DFFB46D5FF /* TravelTimeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59821B515689CD008DA25C5B /* TravelTimeService.swift */; };
 		308CAF00822E6B7163FDF34A /* BarrageScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147ABE59FE1D42F05CDA0A84 /* BarrageScheduler.swift */; };
 		3D7ABD5AEF80C49315FA2374 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CCBF702C7CA8403572AEC52 /* LocationManager.swift */; };
@@ -44,6 +45,7 @@
 		5C8190A45D1AFA6A181161D0 /* LocationSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchService.swift; sourceTree = "<group>"; };
 		6462AA348A7FD628ED37DD83 /* OnTimeAlarm.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OnTimeAlarm.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7529CB3FB337E37EE376F570 /* MapPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapPreviewView.swift; sourceTree = "<group>"; };
+		8218DA1857045E26C41E6768 /* LocationSelectionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSelectionSheet.swift; sourceTree = "<group>"; };
 		97EEF29135637BDF9FCEDB7A /* DepartureWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureWizardView.swift; sourceTree = "<group>"; };
 		ACF7479D8B79978593B55992 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		AFA3C3CC3F55B111294FAE8C /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
@@ -90,6 +92,7 @@
 				97EEF29135637BDF9FCEDB7A /* DepartureWizardView.swift */,
 				22A31552A5B438BE24CCED42 /* EmptyStateView.swift */,
 				3E2C0BF418D2EAAE7BF87933 /* LocationSearchSheet.swift */,
+				8218DA1857045E26C41E6768 /* LocationSelectionSheet.swift */,
 				7529CB3FB337E37EE376F570 /* MapPreviewView.swift */,
 				E1E4E8DF5C6D20B038E5E409 /* PlacesRow.swift */,
 			);
@@ -198,6 +201,7 @@
 				3D7ABD5AEF80C49315FA2374 /* LocationManager.swift in Sources */,
 				B906B3F566186C6B44700C5E /* LocationSearchService.swift in Sources */,
 				8CE78EC28BB83D36FED131D0 /* LocationSearchSheet.swift in Sources */,
+				29E2F2B441CFFD426073B459 /* LocationSelectionSheet.swift in Sources */,
 				547C290D3CB99D68F0FE0408 /* MapPreviewView.swift in Sources */,
 				D5EE3422DFD753BFDA7DF8FF /* NotificationManager.swift in Sources */,
 				25F520E9E6714B5C9961FC28 /* OnTimeAlarmApp.swift in Sources */,

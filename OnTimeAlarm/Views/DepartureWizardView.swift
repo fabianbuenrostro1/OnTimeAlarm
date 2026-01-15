@@ -59,8 +59,7 @@ struct DepartureWizardView: View {
     @State private var barrageInterval: TimeInterval = 120
     
     // Sheets
-    @State private var showingFromPicker: Bool = false
-    @State private var showingToPicker: Bool = false
+    @State private var showingLocationSelection: Bool = false
     @State private var showingTimePicker: Bool = false
     @State private var showingLocationSearch: Bool = false
     @State private var showingAlarmSettings: Bool = false
@@ -121,11 +120,8 @@ struct DepartureWizardView: View {
                         .disabled(!canSave)
                 }
             }
-            .sheet(isPresented: $showingFromPicker) {
-                fromPickerSheet
-            }
-            .sheet(isPresented: $showingToPicker) {
-                toPickerSheet
+            .sheet(isPresented: $showingLocationSelection) {
+                locationSelectionSheet
             }
             .sheet(isPresented: $showingTimePicker) {
                 timePickerSheet
@@ -186,7 +182,10 @@ struct DepartureWizardView: View {
                 iconColor: .blue,
                 title: fromName,
                 subtitle: fromAddress,
-                action: { showingFromPicker = true }
+                action: {
+                    activeSearchType = .origin
+                    showingLocationSelection = true
+                }
             )
             
             Text("to")
@@ -199,7 +198,10 @@ struct DepartureWizardView: View {
                 title: toName ?? "Choose destination",
                 subtitle: toAddress,
                 isPlaceholder: toCoordinate == nil,
-                action: { showingToPicker = true }
+                action: {
+                    activeSearchType = .destination
+                    showingLocationSelection = true
+                }
             )
             
             Text("by")
@@ -433,121 +435,41 @@ struct DepartureWizardView: View {
     
     // MARK: - Sheets
     @ViewBuilder
-    private var fromPickerSheet: some View {
-        NavigationStack {
-            List {
-                Section {
-                    Button {
-                        isUsingCurrentLocation = true
-                        fromName = "Current Location"
-                        fromAddress = nil
-                        fromCoordinate = locationManager.userLocation
-                        showingFromPicker = false
-                    } label: {
-                        Label("Current Location", systemImage: "location.fill")
-                    }
+    private var locationSelectionSheet: some View {
+        switch activeSearchType {
+        case .origin:
+            LocationSelectionSheet(
+                type: .origin,
+                coordinate: $fromCoordinate,
+                locationName: $fromName,
+                locationAddress: $fromAddress,
+                onUseCurrentLocation: {
+                    isUsingCurrentLocation = true
                 }
-                
-                if !savedPlaces.isEmpty {
-                    Section("Saved Places") {
-                        ForEach(savedPlaces) { place in
-                            Button {
-                                isUsingCurrentLocation = false
-                                fromName = place.name
-                                fromAddress = place.address
-                                fromCoordinate = place.coordinate
-                                showingFromPicker = false
-                            } label: {
-                                Label {
-                                    VStack(alignment: .leading) {
-                                        Text(place.name)
-                                        Text(place.address)
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                } icon: {
-                                    Text(place.icon)
-                                }
-                            }
-                        }
-                    }
+            )
+            .onChange(of: fromName) { _, _ in
+                if fromName != "Current Location" {
+                    isUsingCurrentLocation = false
                 }
-                
-                Section {
-                    Button {
-                        showingFromPicker = false
-                        activeSearchType = .origin
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            showingLocationSearch = true
-                        }
-                    } label: {
-                        Label("Search for a location", systemImage: "magnifyingglass")
-                    }
-                }
+                calculateTravelTime()
             }
-            .navigationTitle("From")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { showingFromPicker = false }
+        case .destination:
+            LocationSelectionSheet(
+                type: .destination,
+                coordinate: $toCoordinate,
+                locationName: Binding(
+                    get: { toName ?? "" },
+                    set: { toName = $0.isEmpty ? nil : $0 }
+                ),
+                locationAddress: $toAddress
+            )
+            .onChange(of: toName) { _, newValue in
+                if let name = newValue, label.isEmpty {
+                    label = name
                 }
+                calculateTravelTime()
             }
         }
-        .presentationDetents([.medium])
-    }
-    
-    @ViewBuilder
-    private var toPickerSheet: some View {
-        NavigationStack {
-            List {
-                if !savedPlaces.isEmpty {
-                    Section("Saved Places") {
-                        ForEach(savedPlaces) { place in
-                            Button {
-                                toName = place.name
-                                toAddress = place.address
-                                toCoordinate = place.coordinate
-                                if label.isEmpty {
-                                    label = place.name
-                                }
-                                showingToPicker = false
-                            } label: {
-                                Label {
-                                    VStack(alignment: .leading) {
-                                        Text(place.name)
-                                        Text(place.address)
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                } icon: {
-                                    Text(place.icon)
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                Section {
-                    Button {
-                        showingToPicker = false
-                        activeSearchType = .destination
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            showingLocationSearch = true
-                        }
-                    } label: {
-                        Label("Search for a location", systemImage: "magnifyingglass")
-                    }
-                }
-            }
-            .navigationTitle("To")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { showingToPicker = false }
-                }
-            }
-        }
-        .presentationDetents([.medium])
     }
     
     @ViewBuilder

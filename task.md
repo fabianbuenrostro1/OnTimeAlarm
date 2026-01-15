@@ -15,5 +15,8 @@
 - [x] **Phase 6: Conversational Wizard & Barrage Mode**
     - [x] Implement `AlarmSettingsSheet` (Backend/View ready)
     - [x] Refine `DepartureWizardView` (Removed 'Hero' section per user request)
-- [/] **Phase 7: Refine Prep Duration UI**
+- [x] **Phase 7: Refine Prep Duration UI**
     - [x] Implement Scrollable Time Strip (10-90 min)
+- [x] **Phase 8: Refine Location Selection**
+    - [x] Create `LocationSelectionSheet` (Unified Map+Presets)
+    - [x] Integrate into `DepartureWizardView`
