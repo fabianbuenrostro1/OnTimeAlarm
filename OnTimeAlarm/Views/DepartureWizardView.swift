@@ -724,6 +724,10 @@ struct DepartureWizardView: View {
             modelContext.insert(dep)
         }
         
+        print("----- DEBUG: SAVING DEPARTURE -----")
+        dump(dep)
+        print("-----------------------------------")
+        
         dep.label = label.isEmpty ? (toName ?? "Alarm") : label
         dep.targetArrivalTime = arrivalTime
         dep.prepDuration = prepDuration

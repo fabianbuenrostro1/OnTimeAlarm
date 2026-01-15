@@ -1,7 +1,7 @@
 import SwiftUI
 import MapKit
 
-// MARK: - Header
+// MARK: - Header (Optional for Map-First, but kept for context if needed)
 struct TimelineHeaderView: View {
     let targetTime: Date
     @Binding var isEnabled: Bool
@@ -35,12 +35,14 @@ struct TimelineHeaderView: View {
                     .foregroundStyle(isEnabled ? .green : .secondary)
             }
             .tint(.green)
-            .fixedSize() // Prevents expanding
+            .fixedSize()
         }
     }
 }
 
-// MARK: - Timeline Flow
+// MARK: - Timeline Flow (Hero Style)
+// MARK: - Timeline Flow (Data Table Style)
+// MARK: - Timeline Flow (Vertical Style)
 struct TimelineFlowView: View {
     let wakeTime: Date
     let prepDuration: TimeInterval
@@ -50,6 +52,165 @@ struct TimelineFlowView: View {
     
     // Dynamic values from parent
     let isHeavyTraffic: Bool
+    let alarmCount: Int
+    let isBarrageEnabled: Bool
+    
+    private var timeFormatter: DateFormatter {
+        let f = DateFormatter()
+        f.dateFormat = "h:mm"
+        return f
+    }
+    
+    private var amPmFormatter: DateFormatter {
+        let f = DateFormatter()
+        f.dateFormat = "a"
+        return f
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // 1. Wake Up Row
+            timelineRow(
+                time: wakeTime,
+                isMajor: false,
+                isLast: false,
+                content: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("WAKE UP")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.secondary)
+                        
+                        HStack(spacing: 4) {
+                            Text(TimeCalculator.formatDuration(prepDuration) + " prep")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            
+                            if isBarrageEnabled {
+                                Text("•")
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                                Text("\(alarmCount) alarms")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.orange)
+                            }
+                        }
+                    }
+                }
+            )
+            
+            // 2. Leave Row (Major)
+            timelineRow(
+                time: leaveTime,
+                isMajor: true,
+                isLast: false,
+                content: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("LEAVE HOME")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.blue)
+                        if isHeavyTraffic {
+                            Label("Heavy Traffic", systemImage: "exclamationmark.triangle.fill")
+                                .font(.caption2)
+                                .foregroundStyle(.red)
+                        }
+                    }
+                },
+                nodeColor: .blue
+            )
+            
+            // 3. Arrive Row
+            timelineRow(
+                time: arrivalTime,
+                isMajor: false,
+                isLast: true,
+                content: {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("ARRIVE")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.secondary)
+                        
+                        HStack(spacing: 4) {
+                            Image(systemName: "car.fill")
+                                .font(.caption2)
+                            Text(TimeCalculator.formatDuration(travelTime))
+                                .font(.caption)
+                        }
+                        .foregroundStyle(isHeavyTraffic ? .red : .secondary)
+                    }
+                },
+                nodeColor: .green
+            )
+        }
+        .padding(.vertical, 8)
+    }
+    
+    @ViewBuilder
+    private func timelineRow<Content: View>(
+        time: Date,
+        isMajor: Bool,
+        isLast: Bool,
+        @ViewBuilder content: () -> Content,
+        nodeColor: Color = .gray.opacity(0.5)
+    ) -> some View {
+        HStack(alignment: .top, spacing: 16) {
+            // Left: Time
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(timeFormatter.string(from: time))
+                    .font(isMajor ? .system(size: 28, weight: .bold, design: .rounded) : .callout.monospacedDigit())
+                    .fontWeight(isMajor ? .bold : .medium)
+                    .foregroundStyle(isMajor ? .primary : .secondary)
+                
+                Text(amPmFormatter.string(from: time))
+                    .font(.caption2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.tertiary)
+            }
+            .frame(width: 80, alignment: .trailing)
+            
+            // Center: Timeline Gutter
+            ZStack(alignment: .top) {
+                // Vertical Line
+                if !isLast {
+                    Rectangle()
+                        .fill(Color(.systemGray5))
+                        .frame(width: 2)
+                        .padding(.top, 12)
+                        .frame(maxHeight: .infinity)
+                }
+                
+                // Node
+                Circle()
+                    .fill(nodeColor)
+                    .frame(width: isMajor ? 12 : 8, height: isMajor ? 12 : 8)
+                    .background(Circle().stroke(Color(.systemBackground), lineWidth: 2))
+                    .padding(.top, isMajor ? 8 : 4)
+            }
+            .frame(width: 16)
+            
+            // Right: Content
+            content()
+                .padding(.top, isMajor ? 4 : 0)
+                .padding(.bottom, isLast ? 0 : 24)
+            
+            Spacer()
+        }
+    }
+}
+
+// MARK: - Alarm Status Footer (New)
+// MARK: - Alarm Status Footer (Waveform Style)
+struct AlarmStatusFooter: View {
+    let alarmCount: Int
+    let isBarrageEnabled: Bool
+    @Binding var isEnabled: Bool
+    
+    // New Goal-Oriented Context
+    let targetTime: Date
+    let destinationName: String
     
     private var timeFormatter: DateFormatter {
         let f = DateFormatter()
@@ -57,140 +218,116 @@ struct TimelineFlowView: View {
         return f
     }
     
-    var body: some View {
-        HStack(alignment: .bottom, spacing: 0) {
-            // 1. Wake Up
-            VStack(alignment: .leading, spacing: 2) {
-                Text(timeFormatter.string(from: wakeTime))
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                Text("Wake Up")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
-            
-            Spacer()
-            
-            // Link: Prep
-            VStack(spacing: 2) {
-                Text(TimeCalculator.formatDuration(prepDuration))
-                    .font(.caption2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color(.systemGray5))
-                    .clipShape(Capsule())
-                
-                Rectangle()
-                    .fill(Color(.systemGray5))
-                    .frame(height: 2)
-            }
-            .padding(.bottom, 6)
-            
-            Spacer()
-            
-            // 2. Leave (HERO)
-            VStack(alignment: .center, spacing: 2) {
-                Text(timeFormatter.string(from: leaveTime))
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
-                Text("Leave")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.blue)
-            }
-            // Lift the hero slightly to stand out
-            .offset(y: -4) 
-            
-            Spacer()
-            
-            // Link: Travel
-            VStack(spacing: 2) {
-                HStack(spacing: 2) {
-                    Image(systemName: "car.fill")
-                        .font(.caption2)
-                    Text(TimeCalculator.formatDuration(travelTime))
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                }
-                .foregroundStyle(isHeavyTraffic ? .red : .secondary)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(isHeavyTraffic ? Color.red.opacity(0.1) : Color(.systemGray5))
-                .clipShape(Capsule())
-                
-                Rectangle()
-                    .fill(isHeavyTraffic ? Color.red.opacity(0.3) : Color(.systemGray5))
-                    .frame(height: 2)
-            }
-            .padding(.bottom, 6)
-            
-            Spacer()
-            
-            // 3. Arrive (Visual Checkpoint)
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(timeFormatter.string(from: arrivalTime))
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                Text("Arrive")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
-        }
-    }
-}
-
-// MARK: - Location Footer
-struct CompactLocationFooterView: View {
-    let originName: String
-    let destinationName: String
-    let trafficStatus: DepartureCardView.TrafficStatus
+    // Derived for visualization
+    // Assuming a standard distribution logic if not passed explicitly:
+    // This is purely visual: Pre-wake (small) -> Wake (Large) -> Post-wake (medium fading)
     
     var body: some View {
         HStack {
-            // Origin -> Dest
-            HStack(spacing: 6) {
-                Image(systemName: "house.fill")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                
-                Text(originName)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.secondary)
-                
-                Image(systemName: "arrow.right")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                
-                Image(systemName: "mappin.and.ellipse")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                
-                Text(destinationName)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.primary)
+            // Left: Visual Indicator
+            if isEnabled {
+                if isBarrageEnabled {
+                    // Barrage Waveform
+                    HStack(spacing: 3) {
+                        // Pre-wake: build up
+                        ForEach(0..<2) { i in
+                            Capsule()
+                                .fill(Color.orange.opacity(0.4 + (Double(i) * 0.2)))
+                                .frame(width: 4, height: 12 + (CGFloat(i) * 4))
+                        }
+                        
+                        // Wake Up: Hero
+                        Capsule()
+                            .fill(Color.orange)
+                            .frame(width: 6, height: 24)
+                        
+                        // Post-wake: trail off
+                        ForEach(0..<3) { i in
+                            Capsule()
+                                .fill(Color.orange.opacity(0.8 - (Double(i) * 0.2)))
+                                .frame(width: 4, height: 18 - (CGFloat(i) * 4))
+                        }
+                    }
+                    .frame(width: 44, height: 24)
+                } else {
+                    // Standard Single Alarm
+                    Image(systemName: "bell.fill")
+                        .font(.title3)
+                        .foregroundStyle(.green)
+                        .frame(width: 44, height: 44)
+                }
+            } else {
+                // Disabled State
+                Image(systemName: "bell.slash.fill")
+                    .font(.title3)
+                    .foregroundStyle(.gray)
+                    .frame(width: 44, height: 44)
             }
+            
+            // Center: Text Status (Goal Oriented)
+            VStack(alignment: .leading, spacing: 2) {
+                if isEnabled {
+                    Text("Arrive by \(timeFormatter.string(from: targetTime))")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    Text("at \(destinationName)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                } else {
+                    Text("Alarms Off")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                    Text("Tap to enable")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 8)
             
             Spacer()
             
-            // Traffic Badge
-            HStack(spacing: 4) {
-                Image(systemName: trafficStatus.icon)
-                    .font(.caption2)
-                Text(trafficStatus.label)
-                    .font(.caption2)
-                    .fontWeight(.bold)
-            }
-            .foregroundStyle(trafficStatus.color)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(trafficStatus.color.opacity(0.1))
-            .clipShape(Capsule())
+            // Right: Toggle
+            Toggle("", isOn: $isEnabled)
+                .labelsHidden()
+                .tint(isBarrageEnabled ? .orange : .green)
+        }
+        .padding(16)
+        .background(Color(.systemGray6))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+}
+
+// MARK: - Generic Footer (Locations)
+struct CompactLocationFooterView: View {
+    let originName: String
+    let destinationName: String
+    
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "house.fill")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            
+            Text(originName)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundStyle(.secondary)
+            
+            Image(systemName: "arrow.right")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+            
+            Image(systemName: "mappin.and.ellipse")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            
+            Text(destinationName)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundStyle(.primary)
+            
+            Spacer()
         }
     }
 }

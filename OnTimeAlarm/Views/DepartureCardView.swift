@@ -1,13 +1,16 @@
 import SwiftUI
 import MapKit
 
-/// The main "Mission Control" card showing chronological timeline
+/// The main "Mission Control" card - Map First Design
 struct DepartureCardView: View {
     @Bindable var departure: Departure
     @Environment(LocationManager.self) private var locationManager
     
     @State private var currentTravelTime: TimeInterval?
     @State private var trafficStatus: TrafficStatus = .unknown
+    
+    // Debug / Info
+    @State private var showingDebugInfo = false
     
     enum TrafficStatus {
         case clear, moderate, heavy, unknown
@@ -76,44 +79,72 @@ struct DepartureCardView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // 1. Header (Arrive By + Toggle)
-            TimelineHeaderView(
+            // 1. Map Hero (Top)
+            ZStack(alignment: .bottomTrailing) {
+                MapPreviewView(
+                    originCoordinate: originCoordinate,
+                    destinationCoordinate: destinationCoordinate,
+                    transportType: transportModeType,
+                    onTap: openInMaps
+                )
+                .frame(height: 220) // Taller hero map
+                .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 24))
+                
+                // Traffic Badge Overlay
+                HStack(spacing: 4) {
+                    Image(systemName: trafficStatus.icon)
+                    Text(trafficStatus.label)
+                        .font(.caption)
+                        .fontWeight(.bold)
+                }
+                .foregroundStyle(trafficStatus.color)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.regularMaterial, in: Capsule())
+                .padding(12)
+                
+                // Debug / Info Button (Top Right)
+                Button(action: { showingDebugInfo = true }) {
+                    Image(systemName: "info.circle")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                        .padding(8)
+                        .background(.regularMaterial, in: Circle())
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            }
+            
+            // 2. Timeline Flow (Middle)
+            VStack(spacing: 12) {
+                // Compact Locations (Now at Top)
+                CompactLocationFooterView(
+                    originName: originDisplayName,
+                    destinationName: destinationDisplayName
+                )
+                
+                Divider()
+                
+                TimelineFlowView(
+                    wakeTime: departure.wakeUpTime,
+                    prepDuration: departure.prepDuration,
+                    leaveTime: departure.departureTime,
+                    travelTime: departure.effectiveTravelTime,
+                    arrivalTime: departure.targetArrivalTime,
+                    isHeavyTraffic: trafficStatus == .heavy,
+                    alarmCount: departure.totalBarrageAlarms > 0 ? departure.totalBarrageAlarms : 1,
+                    isBarrageEnabled: departure.isBarrageEnabled
+                )
+            }
+            .padding(16)
+            
+            // 3. Alarm Status Footer (Bottom)
+            AlarmStatusFooter(
+                alarmCount: departure.totalBarrageAlarms > 0 ? departure.totalBarrageAlarms : 1,
+                isBarrageEnabled: departure.isBarrageEnabled,
+                isEnabled: $departure.isEnabled,
                 targetTime: departure.targetArrivalTime,
-                isEnabled: $departure.isEnabled
-            )
-            .padding(16)
-            
-            Divider()
-                .padding(.horizontal, 16)
-            
-            // 2. Timeline Flow (Wake -> Prep -> Leave)
-            TimelineFlowView(
-                wakeTime: departure.wakeUpTime,
-                prepDuration: departure.prepDuration,
-                leaveTime: departure.departureTime,
-                travelTime: departure.effectiveTravelTime,
-                arrivalTime: departure.targetArrivalTime,
-                isHeavyTraffic: trafficStatus == .heavy
-            )
-            .padding(16)
-            
-            // 3. Map Preview
-            MapPreviewView(
-                originCoordinate: originCoordinate,
-                destinationCoordinate: destinationCoordinate,
-                transportType: transportModeType,
-                onTap: openInMaps
-            )
-            .frame(height: 160)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
-            
-            // 4. Footer (Locations + Traffic)
-            CompactLocationFooterView(
-                originName: originDisplayName,
-                destinationName: destinationDisplayName,
-                trafficStatus: trafficStatus
+                destinationName: destinationDisplayName
             )
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
@@ -130,6 +161,9 @@ struct DepartureCardView: View {
         }
         .task {
             await refreshTravelTime()
+        }
+        .sheet(isPresented: $showingDebugInfo) {
+            DebugInfoSheet(departure: departure)
         }
     }
     
@@ -186,6 +220,60 @@ struct DepartureCardView: View {
     }
 }
 
+// MARK: - Debug Sheet
+struct DebugInfoSheet: View {
+    let departure: Departure
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Times") {
+                    LabeledContent("Wake Up", value: departure.wakeUpTime.formatted(date: .omitted, time: .standard))
+                    LabeledContent("Prep", value: TimeCalculator.formatDuration(departure.prepDuration))
+                    LabeledContent("Leave", value: departure.departureTime.formatted(date: .omitted, time: .standard))
+                    LabeledContent("Travel", value: TimeCalculator.formatDuration(departure.effectiveTravelTime))
+                    LabeledContent("Arrive", value: departure.targetArrivalTime.formatted(date: .omitted, time: .standard))
+                }
+                
+                Section("Settings") {
+                    LabeledContent("Barrage Mode", value: departure.isBarrageEnabled ? "On" : "Off")
+                    if departure.isBarrageEnabled {
+                        LabeledContent("Pre-Wake Alarms", value: "\(departure.preWakeAlarms)")
+                        LabeledContent("Post-Wake Alarms", value: "\(departure.postWakeAlarms)")
+                        LabeledContent("Total Alarms", value: "\(departure.totalBarrageAlarms)")
+                    }
+                    LabeledContent("Origin", value: departure.originName ?? "Unknown")
+                    LabeledContent("Destination", value: departure.destinationName ?? "Unknown")
+                }
+                
+                Section("Actions") {
+                    Button("Test Notification (5s)") {
+                        scheduleTestNotification()
+                    }
+                }
+            }
+            .navigationTitle("Diagnostic Info")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                Button("Done") { dismiss() }
+            }
+        }
+    }
+    
+    private func scheduleTestNotification() {
+        let content = UNMutableNotificationContent()
+        content.title = "Test Alarm"
+        content.body = "This is a test notification from Diagnostics."
+        content.sound = .default
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request)
+    }
+}
+
 #Preview {
     let departure = Departure(
         label: "Gym",
@@ -197,6 +285,9 @@ struct DepartureCardView: View {
     departure.destinationLong = -122.2712
     departure.destinationName = "Club One"
     departure.originName = "Home"
+    departure.isBarrageEnabled = true
+    departure.preWakeAlarms = 2
+    departure.postWakeAlarms = 3
     
     return DepartureCardView(departure: departure)
         .padding()

@@ -11,11 +11,21 @@ struct OnTimeAlarmApp: App {
     
     var body: some Scene {
         WindowGroup {
-            DepartureListView()
-                .environment(locationManager)
-                .onAppear {
-                    locationManager.requestPermission()
-                }
+            TabView {
+                DepartureListView()
+                    .tabItem {
+                        Label("Mission Control", systemImage: "location.circle.fill")
+                    }
+                
+                DebugView()
+                    .tabItem {
+                        Label("Debug", systemImage: "ant.fill")
+                    }
+            }
+            .environment(locationManager)
+            .onAppear {
+                locationManager.requestPermission()
+            }
         }
         .modelContainer(for: [Departure.self, Preferences.self, SavedPlace.self])
     }
