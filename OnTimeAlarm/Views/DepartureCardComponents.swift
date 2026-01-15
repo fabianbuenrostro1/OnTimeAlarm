@@ -78,6 +78,20 @@ struct TimelineFlowView: View {
                 time: wakeTime,
                 isMajor: false,
                 isLast: false,
+                customNode: {
+                    ZStack {
+                        Circle()
+                            .fill(Color.orange)
+                            .frame(width: 20, height: 20)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color(.systemBackground), lineWidth: 2)
+                            )
+                        Image(systemName: "bell.fill")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                },
                 content: {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("WAKE UP")
@@ -152,18 +166,19 @@ struct TimelineFlowView: View {
     }
     
     @ViewBuilder
-    private func timelineRow<Content: View>(
+    private func timelineRow<Content: View, Node: View>(
         time: Date,
         isMajor: Bool,
         isLast: Bool,
+        @ViewBuilder customNode: @escaping () -> Node = { EmptyView() },
         @ViewBuilder content: () -> Content,
         nodeColor: Color = .gray.opacity(0.5)
     ) -> some View {
-        HStack(alignment: .center, spacing: 16) { // Changed .top to .center for better visual alignment
+        HStack(alignment: .center, spacing: 16) { 
             // Left: Time
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text(timeFormatter.string(from: time))
-                    .font(isMajor ? .system(size: 32, weight: .bold, design: .rounded) : .callout.monospacedDigit()) // Bumped size slightly
+                    .font(isMajor ? .system(size: 32, weight: .bold, design: .rounded) : .callout.monospacedDigit())
                     .fontWeight(isMajor ? .bold : .medium)
                     .foregroundStyle(isMajor ? .primary : .secondary)
                     .lineLimit(1)
@@ -176,21 +191,21 @@ struct TimelineFlowView: View {
                     .foregroundStyle(.tertiary)
                     .lineLimit(1)
             }
-            .frame(width: 100, alignment: .trailing) // Increased width from 80 to 100
+            .frame(width: 100, alignment: .trailing)
             
             // Center: Timeline Gutter
-            ZStack(alignment: .center) { // Center alignment for the node
+            ZStack(alignment: .center) { 
                 // Vertical Line
                 if !isLast {
                     Rectangle()
                         .fill(Color(.systemGray5))
                         .frame(width: 2)
                         .frame(maxHeight: .infinity)
-                        .offset(y: 12) // Push line down to start from center of node
+                        .offset(y: 12)
                 }
                 
-                // Top Line (connecting from above)
-                if !isMajor && time != wakeTime { // Don't show top line for first item
+                // Top Line
+                if !isMajor && time != wakeTime {
                      Rectangle()
                         .fill(Color(.systemGray5))
                         .frame(width: 2)
@@ -199,20 +214,24 @@ struct TimelineFlowView: View {
                 }
 
                 // Node
-                Circle()
-                    .fill(nodeColor)
-                    .frame(width: isMajor ? 16 : 8, height: isMajor ? 16 : 8) // Slightly larger major node
-                    .background(Circle().stroke(Color(.systemBackground), lineWidth: 2))
+                if Node.self == EmptyView.self {
+                    Circle()
+                        .fill(nodeColor)
+                        .frame(width: isMajor ? 16 : 8, height: isMajor ? 16 : 8)
+                        .background(Circle().stroke(Color(.systemBackground), lineWidth: 2))
+                } else {
+                    customNode()
+                }
             }
-            .frame(width: 16)
+            .frame(width: 20) // Slightly wider for custom nodes
             
             // Right: Content
             content()
-                .padding(.vertical, isMajor ? 0 : 0) // Remove extra padding since we are center aligned
+                .padding(.vertical, isMajor ? 0 : 0)
             
             Spacer()
         }
-        .padding(.vertical, isMajor ? 8 : 4) // Add breathing room to the rows themselves
+        .padding(.vertical, isMajor ? 8 : 4)
     }
 }
 
@@ -238,23 +257,8 @@ struct AlarmStatusFooter: View {
     }
     
     var body: some View {
-        HStack {
-            // Left: Icon Only
-            if isEnabled {
-                // Always show simple bell, visualizer is now in timeline
-                Image(systemName: isBarrageEnabled ? "bell.badge.fill" : "bell.fill")
-                    .font(.title3)
-                    .foregroundStyle(isBarrageEnabled ? .orange : .green)
-                    .frame(width: 44, height: 44)
-            } else {
-                // Disabled State
-                Image(systemName: "bell.slash.fill")
-                    .font(.title3)
-                    .foregroundStyle(.gray)
-                    .frame(width: 44, height: 44)
-            }
-            
-            // Center: Text Status (Goal Oriented)
+        HStack(spacing: 16) {
+            // Left: Text Status (Goal Oriented)
             VStack(alignment: .leading, spacing: 2) {
                 if isEnabled {
                     Text("Arrive by \(timeFormatter.string(from: targetTime))")
@@ -273,7 +277,6 @@ struct AlarmStatusFooter: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .padding(.horizontal, 8)
             
             Spacer()
             
