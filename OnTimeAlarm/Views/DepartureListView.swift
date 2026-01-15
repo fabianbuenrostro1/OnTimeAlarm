@@ -71,10 +71,10 @@ struct DepartureListView: View {
                 }
             }
             .sheet(isPresented: $showingEditor) {
-                DepartureEditorView()
+                DepartureWizardView()
             }
             .sheet(item: $selectedDeparture) { departure in
-                DepartureEditorView(departure: departure)
+                DepartureWizardView(departure: departure)
             }
         }
         .onAppear {

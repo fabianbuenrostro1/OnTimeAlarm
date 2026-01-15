@@ -1,6 +1,7 @@
 import SwiftUI
 import CoreLocation
 import SwiftData
+import MapKit
 
 struct AddPlaceSheet: View {
     @Environment(\.modelContext) private var modelContext
@@ -12,16 +13,11 @@ struct AddPlaceSheet: View {
     @State private var coordinate: CLLocationCoordinate2D?
     @State private var showingSearch = false
     
-    // Smart Presets
-    let presets: [(String, String)] = [
-        ("Home", "🏠"),
-        ("Work", "💼"),
-        ("Gym", "💪"),
-        ("School", "🎓"),
-        ("Partner", "❤️"),
-        ("Cafe", "☕️"),
-        ("Shop", "🛒")
-    ]
+    // Map camera position
+    @State private var cameraPosition: MapCameraPosition = .automatic
+    
+    // Icons available for selection
+    let icons = ["📍", "🏠", "💼", "💪", "🎓", "❤️", "☕️", "🛒", "🏥", "✈️"]
     
     var isFormValid: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty && coordinate != nil
@@ -29,78 +25,150 @@ struct AddPlaceSheet: View {
     
     var body: some View {
         NavigationStack {
-            Form {
-                // Section 1: Location (Reverse order - Location first)
-                Section("Location") {
-                    if let coord = coordinate {
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(address)
-                                    .fontWeight(.medium)
-                                Text("\(coord.latitude), \(coord.longitude)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Button("Change", systemImage: "magnifyingglass") {
-                                showingSearch = true
-                            }
-                        }
-                    } else {
-                        Button {
-                            showingSearch = true
-                        } label: {
-                            Label("Search for Address", systemImage: "magnifyingglass")
-                        }
-                    }
-                }
+            GeometryReader { geometry in
+                let cardHeight: CGFloat = 380 // Approximate card height
+                let visibleMapHeight = geometry.size.height - cardHeight
+                let mapCenterY = visibleMapHeight / 2
                 
-                // Section 2: Label (Below location)
-                Section("Label") {
-                    TextField("Name (Required)", text: $name)
-                    
-                    // Presets for quick filling
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(presets, id: \.0) { preset in
-                                Button {
-                                    name = preset.0
-                                    selectedIcon = preset.1
-                                } label: {
-                                    HStack(spacing: 4) {
-                                        Text(preset.1)
-                                        Text(preset.0)
-                                    }
+                ZStack(alignment: .bottom) {
+                    // MARK: - Hero Map (Top)
+                    Map(position: $cameraPosition) {
+                        if let coord = coordinate {
+                            Annotation("", coordinate: coord) {
+                                ZStack {
+                                    Circle()
+                                        .fill(.white)
+                                        .frame(width: 44, height: 44)
+                                        .shadow(color: .black.opacity(0.25), radius: 6, y: 3)
+                                    Text(selectedIcon)
+                                        .font(.title)
                                 }
-                                .buttonStyle(.bordered)
-                                .tint(.secondary)
                             }
                         }
                     }
-                    .padding(.vertical, 4)
-                }
-                
-                Section("Icon") {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(SavedPlace.icons, id: \.self) { icon in
-                                Text(icon)
-                                    .font(.title)
-                                    .frame(width: 44, height: 44)
-                                    .background(selectedIcon == icon ? Color.blue.opacity(0.15) : Color.clear)
-                                    .clipShape(Circle())
-                                    .overlay {
-                                        if selectedIcon == icon {
-                                            Circle().stroke(Color.blue, lineWidth: 2)
+                    .mapStyle(.standard(elevation: .realistic))
+                    .mapControls {
+                        MapCompass()
+                    }
+                    .ignoresSafeArea(edges: .top)
+                    // Apply bottom padding to shift the map's effective center upward
+                    .safeAreaInset(edge: .bottom) {
+                        Color.clear.frame(height: cardHeight)
+                    }
+                    
+                    // MARK: - Details Card (Bottom)
+                    VStack(spacing: 0) {
+                        // Drag indicator
+                        Capsule()
+                            .fill(Color.secondary.opacity(0.4))
+                            .frame(width: 36, height: 5)
+                            .padding(.top, 10)
+                            .padding(.bottom, 12)
+                        
+                        VStack(alignment: .leading, spacing: 16) {
+                            // MARK: Search Row (Always Visible)
+                            Button {
+                                showingSearch = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "magnifyingglass")
+                                        .foregroundStyle(.blue)
+                                    
+                                    if let _ = coordinate {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(address.isEmpty ? "Selected Location" : address)
+                                                .font(.subheadline.weight(.medium))
+                                                .foregroundStyle(.primary)
+                                                .lineLimit(1)
+                                            Text("Tap to change")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    } else {
+                                        Text("Search for a location")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(.tertiary)
+                                }
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 14)
+                                .background(Color(.systemGray6))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                            .buttonStyle(.plain)
+                            
+                            Divider()
+                            
+                            // Label Input
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Label")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                TextField("Name this place (required)", text: $name)
+                                    .font(.title3)
+                                    .textFieldStyle(.plain)
+                            }
+                            
+                            Divider()
+                            
+                            // Icon Selector
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("Icon")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 10) {
+                                        ForEach(icons, id: \.self) { icon in
+                                            Text(icon)
+                                                .font(.title2)
+                                                .frame(width: 46, height: 46)
+                                                .background(selectedIcon == icon ? Color.blue.opacity(0.15) : Color(.systemGray6))
+                                                .clipShape(Circle())
+                                                .overlay {
+                                                    if selectedIcon == icon {
+                                                        Circle().stroke(Color.blue, lineWidth: 2.5)
+                                                    }
+                                                }
+                                                .onTapGesture {
+                                                    withAnimation(.spring(response: 0.3)) {
+                                                        selectedIcon = icon
+                                                    }
+                                                }
                                         }
                                     }
-                                    .onTapGesture {
-                                        selectedIcon = icon
-                                    }
+                                }
                             }
+                            
+                            // Save Button
+                            Button {
+                                savePlace()
+                            } label: {
+                                Text("Save Place")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
+                                    .background(isFormValid ? Color.blue : Color.gray.opacity(0.3))
+                                    .foregroundStyle(isFormValid ? .white : .secondary)
+                                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                            }
+                            .disabled(!isFormValid)
+                            .padding(.top, 4)
                         }
-                        .padding(4)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 30)
                     }
+                    .background(
+                        RoundedRectangle(cornerRadius: 24)
+                            .fill(.background)
+                            .shadow(color: .black.opacity(0.12), radius: 20, y: -5)
+                    )
                 }
             }
             .navigationTitle("New Place")
@@ -109,18 +177,19 @@ struct AddPlaceSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        savePlace()
-                    }
-                    .disabled(!isFormValid)
-                }
             }
             .sheet(isPresented: $showingSearch) {
                 LocationSearchSheet { coord, locationName, formattedAddress in
                     coordinate = coord
                     address = formattedAddress
-                    // Note: intentionally NOT auto-filling name to force user input
+                    
+                    // Fly to the new location
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        cameraPosition = .region(MKCoordinateRegion(
+                            center: coord,
+                            span: MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005)
+                        ))
+                    }
                 }
             }
         }
@@ -128,8 +197,6 @@ struct AddPlaceSheet: View {
     
     private func savePlace() {
         guard let coord = coordinate else { return }
-        
-        // Ensure we don't save with empty name despite UI disable
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         
         let newPlace = SavedPlace(
@@ -148,3 +215,4 @@ struct AddPlaceSheet: View {
 #Preview {
     AddPlaceSheet()
 }
+
