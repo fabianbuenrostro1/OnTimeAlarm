@@ -8,11 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		25F520E9E6714B5C9961FC28 /* OnTimeAlarmApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B07BCBCD4CC327E443EAA179 /* OnTimeAlarmApp.swift */; };
+		306854E41A7C28DFFB46D5FF /* TravelTimeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59821B515689CD008DA25C5B /* TravelTimeService.swift */; };
+		3D7ABD5AEF80C49315FA2374 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CCBF702C7CA8403572AEC52 /* LocationManager.swift */; };
 		4AA83E84645A7F9F0018F74D /* DepartureListRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1EEEB884B4831D4F57C8D2E /* DepartureListRow.swift */; };
 		7228ED227C6E9F418AA10A3D /* TimeCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD834537C082148EE9D02EC3 /* TimeCalculator.swift */; };
+		8CE78EC28BB83D36FED131D0 /* LocationSearchSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E2C0BF418D2EAAE7BF87933 /* LocationSearchSheet.swift */; };
 		9510E4BBC7173FE58CD34A12 /* Departure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C98AEBC096AEF0A64A0AAE7 /* Departure.swift */; };
 		AAFA40FA09C90A35B529FF88 /* DepartureListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB2474D62B8E1136BA21870 /* DepartureListView.swift */; };
 		B160AA07D7BBF112AB03FFEF /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30E8ED2FD56E4F24816D2CF8 /* NotificationManager.swift */; };
+		B906B3F566186C6B44700C5E /* LocationSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C8190A45D1AFA6A181161D0 /* LocationSearchService.swift */; };
 		CF5B815EACAE66F25928D882 /* DepartureEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49C2212B35CE9A3E3CA0241B /* DepartureEditorView.swift */; };
 		EC22FB9542796A5D8283B74C /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A31552A5B438BE24CCED42 /* EmptyStateView.swift */; };
 		F89DBA2455636FF891FC234A /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF7479D8B79978593B55992 /* Preferences.swift */; };
@@ -22,8 +26,12 @@
 		0C98AEBC096AEF0A64A0AAE7 /* Departure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Departure.swift; sourceTree = "<group>"; };
 		22A31552A5B438BE24CCED42 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		30E8ED2FD56E4F24816D2CF8 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		3E2C0BF418D2EAAE7BF87933 /* LocationSearchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchSheet.swift; sourceTree = "<group>"; };
 		49C2212B35CE9A3E3CA0241B /* DepartureEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureEditorView.swift; sourceTree = "<group>"; };
 		4BB2474D62B8E1136BA21870 /* DepartureListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureListView.swift; sourceTree = "<group>"; };
+		4CCBF702C7CA8403572AEC52 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		59821B515689CD008DA25C5B /* TravelTimeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelTimeService.swift; sourceTree = "<group>"; };
+		5C8190A45D1AFA6A181161D0 /* LocationSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchService.swift; sourceTree = "<group>"; };
 		6462AA348A7FD628ED37DD83 /* OnTimeAlarm.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OnTimeAlarm.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ACF7479D8B79978593B55992 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		B07BCBCD4CC327E443EAA179 /* OnTimeAlarmApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnTimeAlarmApp.swift; sourceTree = "<group>"; };
@@ -32,6 +40,16 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		028451FC64F88EF659CB5D7E /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				4CCBF702C7CA8403572AEC52 /* LocationManager.swift */,
+				5C8190A45D1AFA6A181161D0 /* LocationSearchService.swift */,
+				59821B515689CD008DA25C5B /* TravelTimeService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
 		0939DB85AFF4AA20DC0A07B4 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -48,6 +66,7 @@
 				C1EEEB884B4831D4F57C8D2E /* DepartureListRow.swift */,
 				4BB2474D62B8E1136BA21870 /* DepartureListView.swift */,
 				22A31552A5B438BE24CCED42 /* EmptyStateView.swift */,
+				3E2C0BF418D2EAAE7BF87933 /* LocationSearchSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -81,6 +100,7 @@
 			children = (
 				B07BCBCD4CC327E443EAA179 /* OnTimeAlarmApp.swift */,
 				0939DB85AFF4AA20DC0A07B4 /* Models */,
+				028451FC64F88EF659CB5D7E /* Services */,
 				7910488BB9355953E173763E /* Utilities */,
 				363290F9CC4ECD734EBD4F1E /* ViewModels */,
 				194D8CA3DB1F2B3FF7315594 /* Views */,
@@ -154,10 +174,14 @@
 				4AA83E84645A7F9F0018F74D /* DepartureListRow.swift in Sources */,
 				AAFA40FA09C90A35B529FF88 /* DepartureListView.swift in Sources */,
 				EC22FB9542796A5D8283B74C /* EmptyStateView.swift in Sources */,
+				3D7ABD5AEF80C49315FA2374 /* LocationManager.swift in Sources */,
+				B906B3F566186C6B44700C5E /* LocationSearchService.swift in Sources */,
+				8CE78EC28BB83D36FED131D0 /* LocationSearchSheet.swift in Sources */,
 				B160AA07D7BBF112AB03FFEF /* NotificationManager.swift in Sources */,
 				25F520E9E6714B5C9961FC28 /* OnTimeAlarmApp.swift in Sources */,
 				F89DBA2455636FF891FC234A /* Preferences.swift in Sources */,
 				7228ED227C6E9F418AA10A3D /* TimeCalculator.swift in Sources */,
+				306854E41A7C28DFFB46D5FF /* TravelTimeService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,6 +197,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_GENERATION_MODE = GeneratedFile;
 				INFOPLIST_KEY_CFBundleDisplayName = OnTime;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "OnTime needs your location to calculate travel time to your destinations.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
@@ -316,6 +341,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_GENERATION_MODE = GeneratedFile;
 				INFOPLIST_KEY_CFBundleDisplayName = OnTime;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "OnTime needs your location to calculate travel time to your destinations.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;

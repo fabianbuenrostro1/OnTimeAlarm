@@ -1,9 +1,12 @@
 import SwiftUI
 import SwiftData
+import MapKit
+import CoreLocation
 
 struct DepartureEditorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(LocationManager.self) private var locationManager
     
     // Existing departure (nil for new)
     let departure: Departure?
@@ -18,6 +21,14 @@ struct DepartureEditorView: View {
     @State private var prepDuration: TimeInterval = 1800 // 30 mins
     @State private var staticTravelTime: TimeInterval = 1200 // 20 mins
     
+    // Location state
+    @State private var destinationName: String?
+    @State private var destinationCoordinate: CLLocationCoordinate2D?
+    @State private var liveTravelTime: TimeInterval?
+    @State private var selectedTransportMode: TravelTimeService.TransportMode = .automobile
+    @State private var isLoadingTravelTime = false
+    @State private var showingLocationSearch = false
+    
     private var isEditing: Bool { departure != nil }
     
     private var prepDurationOptions: [(String, TimeInterval)] = [
@@ -29,29 +40,23 @@ struct DepartureEditorView: View {
         ("2 hours", 7200)
     ]
     
-    private var travelTimeOptions: [(String, TimeInterval)] = [
-        ("5 min", 300),
-        ("10 min", 600),
-        ("15 min", 900),
-        ("20 min", 1200),
-        ("30 min", 1800),
-        ("45 min", 2700),
-        ("1 hour", 3600)
-    ]
+    // Use live travel time if available
+    private var effectiveTravelTime: TimeInterval {
+        liveTravelTime ?? staticTravelTime
+    }
     
-    // Computed preview
     private var calculatedWakeUpTime: Date {
         TimeCalculator.wakeUpTime(
             arrivalTime: targetArrivalTime,
             prepDuration: prepDuration,
-            travelTime: staticTravelTime
+            travelTime: effectiveTravelTime
         )
     }
     
     private var calculatedDepartureTime: Date {
         TimeCalculator.departureTime(
             arrivalTime: targetArrivalTime,
-            travelTime: staticTravelTime
+            travelTime: effectiveTravelTime
         )
     }
     
@@ -64,9 +69,70 @@ struct DepartureEditorView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // Section 1: Label
+                // Section 1: Destination (merged with Travel)
                 Section("Destination") {
+                    // Location search button
+                    Button {
+                        showingLocationSearch = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundStyle(.secondary)
+                            
+                            if let name = destinationName {
+                                Text(name)
+                                    .foregroundStyle(.primary)
+                            } else {
+                                Text("Search for a place...")
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            if destinationName != nil {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                            }
+                        }
+                    }
+                    
+                    // Label field
                     TextField("Label (e.g., Gym, Work)", text: $label)
+                    
+                    // Transport mode picker (only show if destination selected)
+                    if destinationCoordinate != nil {
+                        Picker("Transport", selection: $selectedTransportMode) {
+                            ForEach(TravelTimeService.TransportMode.allCases, id: \.self) { mode in
+                                Label(mode.rawValue, systemImage: mode.icon)
+                                    .tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .onChange(of: selectedTransportMode) { _, _ in
+                            calculateLiveTravelTime()
+                        }
+                        
+                        // Travel time display
+                        HStack {
+                            Text("Travel Time")
+                            Spacer()
+                            if isLoadingTravelTime {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            } else if let liveTime = liveTravelTime {
+                                HStack(spacing: 4) {
+                                    Text(TimeCalculator.formatDuration(liveTime))
+                                        .fontWeight(.medium)
+                                    Image(systemName: "bolt.fill")
+                                        .font(.caption)
+                                        .foregroundStyle(.green)
+                                }
+                            } else {
+                                Text(TimeCalculator.formatDuration(staticTravelTime))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
                 }
                 
                 // Section 2: Timing
@@ -84,16 +150,7 @@ struct DepartureEditorView: View {
                     }
                 }
                 
-                // Section 3: Travel
-                Section("Travel") {
-                    Picker("Travel Time", selection: $staticTravelTime) {
-                        ForEach(travelTimeOptions, id: \.1) { option in
-                            Text(option.0).tag(option.1)
-                        }
-                    }
-                }
-                
-                // Section 4: Calculated Preview
+                // Section 3: Calculated Preview
                 Section {
                     HStack {
                         VStack(alignment: .leading) {
@@ -158,13 +215,46 @@ struct DepartureEditorView: View {
                     .disabled(label.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
+            .sheet(isPresented: $showingLocationSearch) {
+                LocationSearchSheet { coordinate, name in
+                    destinationCoordinate = coordinate
+                    destinationName = name
+                    if label.isEmpty {
+                        label = name
+                    }
+                    calculateLiveTravelTime()
+                }
+            }
             .onAppear {
                 if let departure = departure {
                     label = departure.label
                     targetArrivalTime = departure.targetArrivalTime
                     prepDuration = departure.prepDuration
                     staticTravelTime = departure.staticTravelTime
+                    destinationName = departure.destinationName
+                    if let lat = departure.destinationLat, let long = departure.destinationLong {
+                        destinationCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
+                    }
+                    liveTravelTime = departure.liveTravelTime
                 }
+            }
+        }
+    }
+    
+    private func calculateLiveTravelTime() {
+        guard let destination = destinationCoordinate else { return }
+        
+        isLoadingTravelTime = true
+        
+        Task {
+            let travelTime = await TravelTimeService.calculateTravelTime(
+                to: destination,
+                transportType: selectedTransportMode.mapKitType
+            )
+            
+            await MainActor.run {
+                liveTravelTime = travelTime
+                isLoadingTravelTime = false
             }
         }
     }
@@ -176,8 +266,12 @@ struct DepartureEditorView: View {
             departure.targetArrivalTime = targetArrivalTime
             departure.prepDuration = prepDuration
             departure.staticTravelTime = staticTravelTime
+            departure.destinationName = destinationName
+            departure.destinationLat = destinationCoordinate?.latitude
+            departure.destinationLong = destinationCoordinate?.longitude
+            departure.liveTravelTime = liveTravelTime
+            departure.transportType = selectedTransportMode.rawValue
             
-            // Reschedule notifications
             NotificationManager.shared.scheduleNotifications(for: departure)
         } else {
             // Create new
@@ -187,9 +281,13 @@ struct DepartureEditorView: View {
                 prepDuration: prepDuration,
                 staticTravelTime: staticTravelTime
             )
-            modelContext.insert(newDeparture)
+            newDeparture.destinationName = destinationName
+            newDeparture.destinationLat = destinationCoordinate?.latitude
+            newDeparture.destinationLong = destinationCoordinate?.longitude
+            newDeparture.liveTravelTime = liveTravelTime
+            newDeparture.transportType = selectedTransportMode.rawValue
             
-            // Schedule notifications
+            modelContext.insert(newDeparture)
             NotificationManager.shared.scheduleNotifications(for: newDeparture)
         }
         
@@ -200,4 +298,5 @@ struct DepartureEditorView: View {
 #Preview {
     DepartureEditorView()
         .modelContainer(for: [Departure.self], inMemory: true)
+        .environment(LocationManager())
 }

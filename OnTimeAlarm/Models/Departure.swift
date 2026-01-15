@@ -25,17 +25,23 @@ final class Departure {
     var isBarrageEnabled: Bool
     var barrageInterval: TimeInterval
     var homeKitSceneUUID: String?
+    var liveTravelTime: TimeInterval? // From MapKit
     
     // MARK: - Computed Properties
     
+    /// Use live travel time if available, else static
+    var effectiveTravelTime: TimeInterval {
+        liveTravelTime ?? staticTravelTime
+    }
+    
     /// The time to wake up (start preparing)
     var wakeUpTime: Date {
-        targetArrivalTime.addingTimeInterval(-(prepDuration + staticTravelTime))
+        targetArrivalTime.addingTimeInterval(-(prepDuration + effectiveTravelTime))
     }
     
     /// The time to leave the house
     var departureTime: Date {
-        targetArrivalTime.addingTimeInterval(-staticTravelTime)
+        targetArrivalTime.addingTimeInterval(-effectiveTravelTime)
     }
     
     // MARK: - Initialization
