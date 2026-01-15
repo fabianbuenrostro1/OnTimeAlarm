@@ -75,20 +75,27 @@ struct LocationSelectionSheet: View {
                                         .foregroundStyle(.blue)
                                     
                                     if let _ = coordinate {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(locationName)
-                                                .font(.subheadline.weight(.medium))
-                                                .foregroundStyle(.primary)
-                                                .lineLimit(1)
-                                            if let addr = locationAddress, !addr.isEmpty {
-                                                Text(addr)
-                                                    .font(.caption)
-                                                    .foregroundStyle(.secondary)
+                                        // If using current location, show search prompt instead of "Current Location"
+                                        if locationName == "Current Location" || locationName == "Starting Location" {
+                                            Text("Find an address")
+                                                .font(.subheadline)
+                                                .foregroundStyle(.secondary)
+                                        } else {
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(locationName)
+                                                    .font(.subheadline.weight(.medium))
+                                                    .foregroundStyle(.primary)
                                                     .lineLimit(1)
+                                                if let addr = locationAddress, !addr.isEmpty {
+                                                    Text(addr)
+                                                        .font(.caption)
+                                                        .foregroundStyle(.secondary)
+                                                        .lineLimit(1)
+                                                }
                                             }
                                         }
                                     } else {
-                                        Text("Search for a location")
+                                        Text("Find an address")
                                             .font(.subheadline)
                                             .foregroundStyle(.secondary)
                                     }

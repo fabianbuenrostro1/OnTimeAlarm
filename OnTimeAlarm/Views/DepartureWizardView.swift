@@ -25,7 +25,7 @@ struct DepartureWizardView: View {
     @State private var label: String = ""
     
     // Locations
-    @State private var fromName: String = "Current Location"
+    @State private var fromName: String = "Starting Location"
     @State private var fromAddress: String?
     @State private var fromCoordinate: CLLocationCoordinate2D?
     @State private var isUsingCurrentLocation: Bool = true
@@ -137,8 +137,8 @@ struct DepartureWizardView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") { save() }
-                        .fontWeight(.semibold)
-                        .disabled(!canSave)
+                    .fontWeight(.semibold)
+                    .disabled(!canSave)
                 }
             }
             .sheet(isPresented: $showingLocationSelection) {
@@ -173,11 +173,11 @@ struct DepartureWizardView: View {
             }
             .sheet(isPresented: $showingRepeatSelection) {
                 repeatSettingsSheet
-                    .presentationDetents([.fraction(0.3)])
+                .presentationDetents([.fraction(0.3)])
             }
             .sheet(isPresented: $showingPrepSelection) {
                 prepSettingsSheet
-                    .presentationDetents([.fraction(0.5)])
+                .presentationDetents([.fraction(0.5)])
             }
             .onChange(of: toName) { _, _ in
                 calculateTravelTime()
@@ -206,8 +206,9 @@ struct DepartureWizardView: View {
             chipButton(
                 icon: isUsingCurrentLocation ? "location.fill" : "mappin.circle.fill",
                 iconColor: .blue,
-                title: fromName,
+                title: isUsingCurrentLocation ? "Starting Location" : fromName,
                 subtitle: fromAddress,
+                isPlaceholder: isUsingCurrentLocation,
                 action: {
                     activeSearchType = .origin
                     showingLocationSelection = true
@@ -221,7 +222,7 @@ struct DepartureWizardView: View {
             chipButton(
                 icon: "mappin.circle.fill",
                 iconColor: toCoordinate != nil ? .red : .gray,
-                title: toName ?? "Choose destination",
+                title: toName ?? "Destination Location",
                 subtitle: toAddress,
                 isPlaceholder: toCoordinate == nil,
                 action: {
