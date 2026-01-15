@@ -222,23 +222,48 @@ struct DepartureWizardView: View {
     
     @ViewBuilder
     private var prepDurationRow: some View {
-        HStack(spacing: 8) {
-            Text("I need")
-                .font(.title3)
-                .foregroundStyle(.secondary)
-            
-            Picker("", selection: $prepDuration) {
-                Text("15").tag(TimeInterval(900))
-                Text("30").tag(TimeInterval(1800))
-                Text("45").tag(TimeInterval(2700))
-                Text("60").tag(TimeInterval(3600))
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 4) {
+                Text("I need")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                
+                Text("\(Int(prepDuration / 60)) min")
+                    .font(.title3.weight(.medium))
+                    .foregroundStyle(.primary)
+                
+                Text("to get ready")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
             }
-            .pickerStyle(.segmented)
-            .frame(width: 180)
+            .padding(.horizontal, 20)
             
-            Text("min to get ready")
-                .font(.title3)
-                .foregroundStyle(.secondary)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    // 10 to 60 in steps of 5, then 75 and 90
+                    let steps = Array(stride(from: 10, through: 60, by: 5)) + [75, 90]
+                    
+                    ForEach(steps, id: \.self) { minutes in
+                        let duration = TimeInterval(minutes * 60)
+                        let isSelected = prepDuration == duration
+                        
+                        Button {
+                            withAnimation(.snappy) {
+                                prepDuration = duration
+                            }
+                        } label: {
+                            Text("\(minutes)")
+                                .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                                .foregroundStyle(isSelected ? .white : .primary)
+                                .frame(width: 44, height: 44)
+                                .background(isSelected ? Color.orange : Color(.systemGray6))
+                                .clipShape(Circle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
         }
     }
     
