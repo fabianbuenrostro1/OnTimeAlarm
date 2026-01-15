@@ -144,7 +144,9 @@ struct DepartureCardView: View {
                 isBarrageEnabled: departure.isBarrageEnabled,
                 isEnabled: $departure.isEnabled,
                 targetTime: departure.targetArrivalTime,
-                destinationName: destinationDisplayName
+                destinationName: destinationDisplayName,
+                preWakeAlarms: departure.preWakeAlarms,
+                postWakeAlarms: departure.postWakeAlarms
             )
             .padding(.horizontal, 16)
             .padding(.bottom, 16)

@@ -156,53 +156,65 @@ struct TimelineFlowView: View {
         @ViewBuilder content: () -> Content,
         nodeColor: Color = .gray.opacity(0.5)
     ) -> some View {
-        HStack(alignment: .top, spacing: 16) {
+        HStack(alignment: .center, spacing: 16) { // Changed .top to .center for better visual alignment
             // Left: Time
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text(timeFormatter.string(from: time))
-                    .font(isMajor ? .system(size: 28, weight: .bold, design: .rounded) : .callout.monospacedDigit())
+                    .font(isMajor ? .system(size: 32, weight: .bold, design: .rounded) : .callout.monospacedDigit()) // Bumped size slightly
                     .fontWeight(isMajor ? .bold : .medium)
                     .foregroundStyle(isMajor ? .primary : .secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .fixedSize()
                 
                 Text(amPmFormatter.string(from: time))
                     .font(.caption2)
                     .fontWeight(.bold)
                     .foregroundStyle(.tertiary)
+                    .lineLimit(1)
             }
-            .frame(width: 80, alignment: .trailing)
+            .frame(width: 100, alignment: .trailing) // Increased width from 80 to 100
             
             // Center: Timeline Gutter
-            ZStack(alignment: .top) {
+            ZStack(alignment: .center) { // Center alignment for the node
                 // Vertical Line
                 if !isLast {
                     Rectangle()
                         .fill(Color(.systemGray5))
                         .frame(width: 2)
-                        .padding(.top, 12)
                         .frame(maxHeight: .infinity)
+                        .offset(y: 12) // Push line down to start from center of node
                 }
                 
+                // Top Line (connecting from above)
+                if !isMajor && time != wakeTime { // Don't show top line for first item
+                     Rectangle()
+                        .fill(Color(.systemGray5))
+                        .frame(width: 2)
+                        .frame(height: 12)
+                        .offset(y: -12)
+                }
+
                 // Node
                 Circle()
                     .fill(nodeColor)
-                    .frame(width: isMajor ? 12 : 8, height: isMajor ? 12 : 8)
+                    .frame(width: isMajor ? 16 : 8, height: isMajor ? 16 : 8) // Slightly larger major node
                     .background(Circle().stroke(Color(.systemBackground), lineWidth: 2))
-                    .padding(.top, isMajor ? 8 : 4)
             }
             .frame(width: 16)
             
             // Right: Content
             content()
-                .padding(.top, isMajor ? 4 : 0)
-                .padding(.bottom, isLast ? 0 : 24)
+                .padding(.vertical, isMajor ? 0 : 0) // Remove extra padding since we are center aligned
             
             Spacer()
         }
+        .padding(.vertical, isMajor ? 8 : 4) // Add breathing room to the rows themselves
     }
 }
 
 // MARK: - Alarm Status Footer (New)
-// MARK: - Alarm Status Footer (Waveform Style)
+// MARK: - Alarm Status Footer (Visual Preview Style)
 struct AlarmStatusFooter: View {
     let alarmCount: Int
     let isBarrageEnabled: Bool
@@ -212,43 +224,24 @@ struct AlarmStatusFooter: View {
     let targetTime: Date
     let destinationName: String
     
+    // Data for Visualization
+    let preWakeAlarms: Int
+    let postWakeAlarms: Int
+    
     private var timeFormatter: DateFormatter {
         let f = DateFormatter()
         f.timeStyle = .short
         return f
     }
     
-    // Derived for visualization
-    // Assuming a standard distribution logic if not passed explicitly:
-    // This is purely visual: Pre-wake (small) -> Wake (Large) -> Post-wake (medium fading)
-    
     var body: some View {
         HStack {
             // Left: Visual Indicator
             if isEnabled {
                 if isBarrageEnabled {
-                    // Barrage Waveform
-                    HStack(spacing: 3) {
-                        // Pre-wake: build up
-                        ForEach(0..<2) { i in
-                            Capsule()
-                                .fill(Color.orange.opacity(0.4 + (Double(i) * 0.2)))
-                                .frame(width: 4, height: 12 + (CGFloat(i) * 4))
-                        }
-                        
-                        // Wake Up: Hero
-                        Capsule()
-                            .fill(Color.orange)
-                            .frame(width: 6, height: 24)
-                        
-                        // Post-wake: trail off
-                        ForEach(0..<3) { i in
-                            Capsule()
-                                .fill(Color.orange.opacity(0.8 - (Double(i) * 0.2)))
-                                .frame(width: 4, height: 18 - (CGFloat(i) * 4))
-                        }
-                    }
-                    .frame(width: 44, height: 24)
+                    // Barrage Visualizer (Dots & Bell)
+                    BarrageVisualizer(preWakeAlarms: preWakeAlarms, postWakeAlarms: postWakeAlarms)
+                        .frame(width: 80, height: 24, alignment: .leading)
                 } else {
                     // Standard Single Alarm
                     Image(systemName: "bell.fill")
@@ -295,6 +288,54 @@ struct AlarmStatusFooter: View {
         .padding(16)
         .background(Color(.systemGray6))
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+}
+
+// MARK: - Barrage Visualizer (Dots & Bell)
+struct BarrageVisualizer: View {
+    let preWakeAlarms: Int
+    let postWakeAlarms: Int
+    
+    var body: some View {
+        HStack(spacing: 3) {
+            // Pre-wake dots
+            if preWakeAlarms > 0 {
+                ForEach(0..<min(preWakeAlarms, 4), id: \.self) { _ in
+                    Circle()
+                        .fill(Color.blue.opacity(0.5))
+                        .frame(width: 6, height: 6)
+                }
+                if preWakeAlarms > 4 {
+                    Circle()
+                        .fill(Color.blue.opacity(0.3))
+                        .frame(width: 4, height: 4)
+                }
+            }
+            
+            // Main wake bell
+            ZStack {
+                Circle()
+                    .fill(Color.orange)
+                    .frame(width: 20, height: 20)
+                Image(systemName: "bell.fill")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.white)
+            }
+            
+            // Post-wake dots
+            if postWakeAlarms > 0 {
+                ForEach(0..<min(postWakeAlarms, 4), id: \.self) { i in
+                    Circle()
+                        .fill(Color.red.opacity(0.3 + Double(i) * 0.07))
+                        .frame(width: 6, height: 6)
+                }
+                if postWakeAlarms > 4 {
+                    Circle()
+                        .fill(Color.red.opacity(0.2))
+                        .frame(width: 4, height: 4)
+                }
+            }
+        }
     }
 }
 
