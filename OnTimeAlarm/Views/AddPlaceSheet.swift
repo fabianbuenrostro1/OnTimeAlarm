@@ -107,50 +107,40 @@ struct AddPlaceSheet: View {
                             
                             Divider()
                             
-                            // Label Input
+                            // Label & Icon Input
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Label")
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                                 
-                                ZStack(alignment: .leading) {
-                                    if name.isEmpty {
-                                        Text(placeholders[placeholderIndex])
-                                            .font(.title3)
-                                            .foregroundStyle(.tertiary)
-                                            .transition(.asymmetric(
-                                                insertion: .move(edge: .bottom).combined(with: .opacity),
-                                                removal: .move(edge: .top).combined(with: .opacity)
-                                            ))
-                                            .id("placeholder-\(placeholderIndex)")
+                                HStack(alignment: .center, spacing: 16) {
+                                    ZStack(alignment: .leading) {
+                                        if name.isEmpty {
+                                            Text(placeholders[placeholderIndex])
+                                                .font(.system(size: 24, weight: .regular))
+                                                .foregroundStyle(.tertiary)
+                                                .transition(.asymmetric(
+                                                    insertion: .move(edge: .bottom).combined(with: .opacity),
+                                                    removal: .move(edge: .top).combined(with: .opacity)
+                                                ))
+                                                .id("placeholder-\(placeholderIndex)")
+                                        }
+                                        
+                                        TextField("", text: $name)
+                                            .font(.system(size: 24, weight: .regular))
+                                            .textFieldStyle(.plain)
                                     }
-                                    
-                                    TextField("", text: $name)
-                                        .font(.title3)
-                                        .textFieldStyle(.plain)
-                                }
-                                .animation(.spring(response: 0.5, dampingFraction: 0.7), value: placeholderIndex)
-                                .onReceive(timer) { _ in
-                                    if name.isEmpty {
-                                        withAnimation {
-                                            placeholderIndex = (placeholderIndex + 1) % placeholders.count
+                                    .animation(.spring(response: 0.5, dampingFraction: 0.7), value: placeholderIndex)
+                                    .onReceive(timer) { _ in
+                                        if name.isEmpty {
+                                            withAnimation {
+                                                placeholderIndex = (placeholderIndex + 1) % placeholders.count
+                                            }
                                         }
                                     }
-                                }
-                            }
-                            
-                            Divider()
-                            
-                            // Icon Selector - Native Emoji Picker
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("Icon")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                
-                                HStack {
-                                    Spacer()
+                                    
+                                    // Icon Picker
                                     EmojiPickerButton(selectedEmoji: $selectedIcon)
-                                    Spacer()
                                 }
                             }
                             
