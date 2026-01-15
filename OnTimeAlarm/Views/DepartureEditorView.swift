@@ -243,13 +243,18 @@ struct DepartureEditorView: View {
     
     private func calculateLiveTravelTime() {
         guard let destination = destinationCoordinate else { return }
+        guard let userLocation = locationManager.userLocation else {
+            print("No user location available")
+            return
+        }
         
         isLoadingTravelTime = true
         
         Task {
             let travelTime = await TravelTimeService.calculateTravelTime(
+                from: userLocation,
                 to: destination,
-                transportType: selectedTransportMode.mapKitType
+                transportMode: selectedTransportMode
             )
             
             await MainActor.run {
