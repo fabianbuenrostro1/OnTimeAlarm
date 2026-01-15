@@ -204,15 +204,34 @@ struct DepartureWizardView: View {
                 .font(.title3)
                 .foregroundStyle(.secondary)
             
-            DatePicker(
-                "",
-                selection: $arrivalTime,
-                displayedComponents: .hourAndMinute
-            )
-            .datePickerStyle(.wheel)
-            .labelsHidden()
-            .frame(height: 150)
-            .clipped()
+            // Time chip with compact picker overlay
+            HStack(spacing: 12) {
+                Image(systemName: "clock.fill")
+                    .font(.title2)
+                    .foregroundStyle(.orange)
+                    .frame(width: 32)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    DatePicker(
+                        "",
+                        selection: $arrivalTime,
+                        displayedComponents: .hourAndMinute
+                    )
+                    .datePickerStyle(.compact)
+                    .labelsHidden()
+                    .tint(.orange)
+                    
+                    Text(formattedDate(arrivalTime))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+            }
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
             
             prepDurationRow
         }
