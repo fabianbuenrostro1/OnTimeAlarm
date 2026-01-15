@@ -60,7 +60,6 @@ struct DepartureWizardView: View {
     
     // Sheets
     @State private var showingLocationSelection: Bool = false
-    @State private var showingTimePicker: Bool = false
     @State private var showingLocationSearch: Bool = false
     @State private var showingAlarmSettings: Bool = false
     @State private var activeSearchType: WizardSearchType = .destination
@@ -122,9 +121,6 @@ struct DepartureWizardView: View {
             }
             .sheet(isPresented: $showingLocationSelection) {
                 locationSelectionSheet
-            }
-            .sheet(isPresented: $showingTimePicker) {
-                timePickerSheet
             }
             .sheet(isPresented: $showingLocationSearch) {
                 LocationSearchSheet { coordinate, name, address in
@@ -208,13 +204,15 @@ struct DepartureWizardView: View {
                 .font(.title3)
                 .foregroundStyle(.secondary)
             
-            chipButton(
-                icon: "clock.fill",
-                iconColor: .orange,
-                title: timeFormatter.string(from: arrivalTime),
-                subtitle: formattedDate(arrivalTime),
-                action: { showingTimePicker = true }
+            DatePicker(
+                "",
+                selection: $arrivalTime,
+                displayedComponents: .hourAndMinute
             )
+            .datePickerStyle(.wheel)
+            .labelsHidden()
+            .frame(height: 150)
+            .clipped()
             
             prepDurationRow
         }
@@ -470,29 +468,6 @@ struct DepartureWizardView: View {
                 calculateTravelTime()
             }
         }
-    }
-    
-    @ViewBuilder
-    private var timePickerSheet: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                DatePicker(
-                    "",
-                    selection: $arrivalTime,
-                    displayedComponents: .hourAndMinute
-                )
-                .datePickerStyle(.wheel)
-                .labelsHidden()
-            }
-            .navigationTitle("Arrive By")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { showingTimePicker = false }
-                }
-            }
-        }
-        .presentationDetents([.medium])
     }
     
     // MARK: - Logic
