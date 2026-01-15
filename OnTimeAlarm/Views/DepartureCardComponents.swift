@@ -55,6 +55,10 @@ struct TimelineFlowView: View {
     let alarmCount: Int
     let isBarrageEnabled: Bool
     
+    // Data for Visualization
+    let preWakeAlarms: Int
+    let postWakeAlarms: Int
+    
     private var timeFormatter: DateFormatter {
         let f = DateFormatter()
         f.dateFormat = "h:mm"
@@ -75,13 +79,13 @@ struct TimelineFlowView: View {
                 isMajor: false,
                 isLast: false,
                 content: {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text("WAKE UP")
                             .font(.caption2)
                             .fontWeight(.bold)
                             .foregroundStyle(.secondary)
                         
-                        HStack(spacing: 4) {
+                        HStack(spacing: 6) {
                             Text(TimeCalculator.formatDuration(prepDuration) + " prep")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -90,10 +94,9 @@ struct TimelineFlowView: View {
                                 Text("•")
                                     .font(.caption2)
                                     .foregroundStyle(.tertiary)
-                                Text("\(alarmCount) alarms")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.orange)
+                                
+                                // Visualizer embedded in timeline
+                                BarrageVisualizer(preWakeAlarms: preWakeAlarms, postWakeAlarms: postWakeAlarms)
                             }
                         }
                     }
@@ -236,19 +239,13 @@ struct AlarmStatusFooter: View {
     
     var body: some View {
         HStack {
-            // Left: Visual Indicator
+            // Left: Icon Only
             if isEnabled {
-                if isBarrageEnabled {
-                    // Barrage Visualizer (Dots & Bell)
-                    BarrageVisualizer(preWakeAlarms: preWakeAlarms, postWakeAlarms: postWakeAlarms)
-                        .frame(width: 80, height: 24, alignment: .leading)
-                } else {
-                    // Standard Single Alarm
-                    Image(systemName: "bell.fill")
-                        .font(.title3)
-                        .foregroundStyle(.green)
-                        .frame(width: 44, height: 44)
-                }
+                // Always show simple bell, visualizer is now in timeline
+                Image(systemName: isBarrageEnabled ? "bell.badge.fill" : "bell.fill")
+                    .font(.title3)
+                    .foregroundStyle(isBarrageEnabled ? .orange : .green)
+                    .frame(width: 44, height: 44)
             } else {
                 // Disabled State
                 Image(systemName: "bell.slash.fill")

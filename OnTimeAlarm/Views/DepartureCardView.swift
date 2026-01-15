@@ -133,7 +133,9 @@ struct DepartureCardView: View {
                     arrivalTime: departure.targetArrivalTime,
                     isHeavyTraffic: trafficStatus == .heavy,
                     alarmCount: departure.totalBarrageAlarms > 0 ? departure.totalBarrageAlarms : 1,
-                    isBarrageEnabled: departure.isBarrageEnabled
+                    isBarrageEnabled: departure.isBarrageEnabled,
+                    preWakeAlarms: departure.preWakeAlarms,
+                    postWakeAlarms: departure.postWakeAlarms
                 )
             }
             .padding(16)
