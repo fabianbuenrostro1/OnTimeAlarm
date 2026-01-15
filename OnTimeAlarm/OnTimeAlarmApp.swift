@@ -17,6 +17,6 @@ struct OnTimeAlarmApp: App {
                     locationManager.requestPermission()
                 }
         }
-        .modelContainer(for: [Departure.self, Preferences.self])
+        .modelContainer(for: [Departure.self, Preferences.self, SavedPlace.self])
     }
 }

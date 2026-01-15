@@ -15,7 +15,7 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
         manager.desiredAccuracy = kCLLocationAccuracyBest
         authorizationStatus = manager.authorizationStatus
         
-        #if DEBUG
+        #if DEBUG && targetEnvironment(simulator)
         setMockLocation()
         #endif
     }

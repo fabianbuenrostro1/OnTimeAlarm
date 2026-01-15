@@ -6,7 +6,7 @@ struct LocationSearchSheet: View {
     
     @State private var searchService = LocationSearchService()
     
-    var onLocationSelected: (CLLocationCoordinate2D, String) -> Void
+    var onLocationSelected: (CLLocationCoordinate2D, String, String) -> Void
     
     var body: some View {
         NavigationStack {
@@ -67,7 +67,7 @@ struct LocationSearchSheet: View {
         Task {
             if let result = await searchService.getCoordinates(for: completion) {
                 await MainActor.run {
-                    onLocationSelected(result.coordinate, result.name)
+                    onLocationSelected(result.coordinate, result.name, result.formattedAddress)
                     dismiss()
                 }
             }
@@ -76,7 +76,7 @@ struct LocationSearchSheet: View {
 }
 
 #Preview {
-    LocationSearchSheet { coordinate, name in
-        print("Selected: \(name) at \(coordinate)")
+    LocationSearchSheet { coordinate, name, address in
+        print("Selected: \(name) at \(coordinate), Address: \(address)")
     }
 }

@@ -25,8 +25,9 @@ struct DepartureEditorView: View {
     @State private var prepDuration: TimeInterval = 1800
     @State private var staticTravelTime: TimeInterval = 1200
     
-    // Origin (departure from) location - Snapshot based
+    // Origin (departure from) location // Locations
     @State private var originName: String?
+    @State private var originAddress: String?
     @State private var originCoordinate: CLLocationCoordinate2D?
     
     // Barrage Mode
@@ -37,6 +38,7 @@ struct DepartureEditorView: View {
     
     // Destination location
     @State private var destinationName: String?
+    @State private var destinationAddress: String?
     @State private var destinationCoordinate: CLLocationCoordinate2D?
     
     // Travel state
@@ -46,6 +48,7 @@ struct DepartureEditorView: View {
     
     // Sheets
     @State private var showingLocationSearch = false
+    @State private var showingAddPlace = false
     @State private var searchType: LocationSearchType = .destination
     
     private var isEditing: Bool { departure != nil }
@@ -87,9 +90,73 @@ struct DepartureEditorView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // Section 1: Locations
-                Section("Route") {
-                    // Origin - Snapshot Location
+                // Header Section: Schedule Hero + Label
+                Section {
+                    VStack(spacing: 16) {
+                        // 1. Wake Up Time - The Hero
+                        VStack(spacing: 4) {
+                            Text("Wake Up")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Text(timeFormatter.string(from: calculatedWakeUpTime))
+                                .font(.system(size: 56, weight: .bold, design: .rounded)) // Slightly larger
+                                .foregroundStyle(.primary)
+                        }
+                        .padding(.top, 8)
+                        
+                        // 2. Timeline: Wake → Leave → Arrive
+                        HStack {
+                            VStack(spacing: 4) {
+                                Image(systemName: "bed.double.fill")
+                                    .foregroundStyle(.blue)
+                                Text(timeFormatter.string(from: calculatedWakeUpTime))
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                            }
+                            
+                            Rectangle()
+                                .fill(Color.secondary.opacity(0.3))
+                                .frame(height: 2)
+                                .padding(.horizontal, 4)
+                            
+                            VStack(spacing: 4) {
+                                Image(systemName: "car.fill")
+                                    .foregroundStyle(.orange)
+                                Text(timeFormatter.string(from: calculatedDepartureTime))
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                            }
+                            
+                            Rectangle()
+                                .fill(Color.secondary.opacity(0.3))
+                                .frame(height: 2)
+                                .padding(.horizontal, 4)
+                            
+                            VStack(spacing: 4) {
+                                Image(systemName: "mappin.circle.fill")
+                                    .foregroundStyle(.green)
+                                Text(timeFormatter.string(from: targetArrivalTime))
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.green)
+                            }
+                        }
+                        .padding(.horizontal, 4)
+                        
+                        Divider()
+                        
+                        // 3. Name it (Label) - Integrated at bottom of card
+                        TextField("Name this departure (e.g., Gym)", text: $label)
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+                            .padding(.bottom, 4)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                
+                // Section 3: Where are you going?
+                Section {
+                    // Origin
                     HStack {
                         Image(systemName: "location.fill")
                             .foregroundStyle(.blue)
@@ -101,6 +168,13 @@ struct DepartureEditorView: View {
                             if let name = originName {
                                 Text(name)
                                     .foregroundStyle(.primary)
+                                    .fontWeight(.medium)
+                                if let addr = originAddress {
+                                    Text(addr)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                }
                             } else {
                                 Text("Not set")
                                     .foregroundStyle(.secondary)
@@ -108,16 +182,6 @@ struct DepartureEditorView: View {
                         }
                         
                         Spacer()
-                        
-                        Button {
-                            snapshotCurrentLocation()
-                        } label: {
-                            Text("Use Current")
-                                .font(.caption)
-                                .fontWeight(.medium)
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.blue)
                         
                         Button {
                             searchType = .origin
@@ -128,39 +192,76 @@ struct DepartureEditorView: View {
                         .buttonStyle(.bordered)
                     }
                     
-                    // Destination (Going To)
-                    Button {
-                        searchType = .destination
-                        showingLocationSearch = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "mappin.circle.fill")
-                                .foregroundStyle(.red)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("To")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                if let name = destinationName {
-                                    Text(name)
-                                        .foregroundStyle(.primary)
-                                } else {
-                                    Text("Set destination...")
+                    // Origin Places Row
+                    PlacesRow(
+                        selectedCoordinate: $originCoordinate,
+                        selectedName: $originName,
+                        selectedAddress: $originAddress,
+                        onSelectCurrentLocation: {
+                            snapshotCurrentLocation()
+                        },
+                        onAddNew: {
+                            showingAddPlace = true
+                        }
+                    )
+                    .listRowInsets(EdgeInsets())
+                    .padding(.vertical, 4)
+                    
+                    // Destination
+                    HStack {
+                        Image(systemName: "mappin.circle.fill")
+                            .foregroundStyle(.red)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("To")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            if let name = destinationName {
+                                Text(name)
+                                    .foregroundStyle(.primary)
+                                    .fontWeight(.medium)
+                                if let addr = destinationAddress {
+                                    Text(addr)
+                                        .font(.caption)
                                         .foregroundStyle(.secondary)
+                                        .lineLimit(1)
                                 }
+                            } else {
+                                Text("Not set")
+                                    .foregroundStyle(.secondary)
                             }
-                            
-                            Spacer()
-                            
-                            if destinationName != nil {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(.green)
+                        }
+                        
+                        Spacer()
+                        
+                        Button {
+                            searchType = .destination
+                            showingLocationSearch = true
+                        } label: {
+                            Image(systemName: "magnifyingglass")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    
+                    // Destination Places Row
+                    PlacesRow(
+                        selectedCoordinate: $destinationCoordinate,
+                        selectedName: $destinationName,
+                        selectedAddress: $destinationAddress,
+                        onAddNew: {
+                            showingAddPlace = true
+                        }
+                    )
+                    .listRowInsets(EdgeInsets())
+                    .padding(.vertical, 4)
+                    .onChange(of: destinationName) { oldValue, newValue in
+                        if oldValue != newValue, newValue != nil, destinationCoordinate != nil {
+                            calculateLiveTravelTime()
+                            if label.isEmpty, let name = newValue {
+                                label = name
                             }
                         }
                     }
-                    
-                    // Label
-                    TextField("Label (e.g., Gym, Work)", text: $label)
                     
                     // Transport + Travel Time (show when both locations set)
                     if originCoordinate != nil && destinationCoordinate != nil {
@@ -195,10 +296,12 @@ struct DepartureEditorView: View {
                             }
                         }
                     }
+                } header: {
+                    Text("Where are you going?")
                 }
                 
-                // Section 2: Timing
-                Section("Timing") {
+                // Section 4: When do you need to arrive?
+                Section {
                     DatePicker(
                         "Arrival Time",
                         selection: $targetArrivalTime,
@@ -210,9 +313,11 @@ struct DepartureEditorView: View {
                             Text(option.0).tag(option.1)
                         }
                     }
+                } header: {
+                    Text("When do you need to arrive?")
                 }
                 
-                // Section 3: Barrage Mode
+                // Section 5: Alarm Mode
                 Section {
                     Toggle(isOn: $isBarrageEnabled) {
                         HStack {
@@ -260,61 +365,11 @@ struct DepartureEditorView: View {
                         .padding(.vertical, 4)
                     }
                 } header: {
-                    Text("Alarm Mode")
+                    Text("Alarm Settings")
                 } footer: {
                     if isBarrageEnabled {
                         Text("Fires \(preWakeAlarms + 1 + postWakeAlarms) alarms total: \(preWakeAlarms) before, 1 at wake up, \(postWakeAlarms) after.")
                     }
-                }
-                
-                // Section 4: Schedule Preview
-                Section {
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text("Wake Up")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(timeFormatter.string(from: calculatedWakeUpTime))
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                        }
-                        
-                        Spacer()
-                        
-                        Image(systemName: "arrow.right")
-                            .foregroundStyle(.secondary)
-                        
-                        Spacer()
-                        
-                        VStack(alignment: .center) {
-                            Text("Leave")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(timeFormatter.string(from: calculatedDepartureTime))
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                        }
-                        
-                        Spacer()
-                        
-                        Image(systemName: "arrow.right")
-                            .foregroundStyle(.secondary)
-                        
-                        Spacer()
-                        
-                        VStack(alignment: .trailing) {
-                            Text("Arrive")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(timeFormatter.string(from: targetArrivalTime))
-                                .font(.title2)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.green)
-                        }
-                    }
-                    .padding(.vertical, 8)
-                } header: {
-                    Text("Your Schedule")
                 }
             }
             .navigationTitle(isEditing ? "Edit Departure" : "New Departure")
@@ -329,19 +384,32 @@ struct DepartureEditorView: View {
                 }
             }
             .sheet(isPresented: $showingLocationSearch) {
-                LocationSearchSheet { coordinate, name in
+                LocationSearchSheet { coordinate, name, formattedAddress in
                     if searchType == .origin {
                         originCoordinate = coordinate
                         originName = name
+                        originAddress = formattedAddress
                     } else {
                         destinationCoordinate = coordinate
                         destinationName = name
+                        destinationAddress = formattedAddress
+                        
+                        // Auto-fill label only if empty AND name doesn't look like an address
+                        // Simple heuristic: if name starts with a number, maybe it's an address?
+                        // But user might want to name it "Work".
+                        // Let's NOT auto-fill label if it's identical to name, to avoid redundancy.
                         if label.isEmpty {
-                            label = name
+                            // If name is NOT same as formattedAddress (meaning it's a POI name), use it.
+                            if name != formattedAddress {
+                                label = name
+                            }
                         }
                     }
                     calculateLiveTravelTime()
                 }
+            }
+            .sheet(isPresented: $showingAddPlace) {
+                AddPlaceSheet()
             }
             .onAppear {
                 if let departure = departure {
@@ -352,12 +420,14 @@ struct DepartureEditorView: View {
                     
                     // Load origin
                     originName = departure.originName
+                    originAddress = departure.originAddress
                     if let lat = departure.originLat, let long = departure.originLong {
                         originCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
                     }
                     
                     // Load destination
                     destinationName = departure.destinationName
+                    destinationAddress = departure.destinationAddress
                     if let lat = departure.destinationLat, let long = departure.destinationLong {
                         destinationCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
                     }
@@ -374,7 +444,19 @@ struct DepartureEditorView: View {
                     postWakeAlarms = departure.postWakeAlarms
                     barrageInterval = departure.barrageInterval
                 } else {
-                    // New departure: snapshot current location by default
+                    // New departure: snapshot current location by default (if available)
+                    if locationManager.userLocation != nil {
+                        snapshotCurrentLocation()
+                    }
+                    // If not available, the .onChange below will handle it
+                }
+            }
+            .onChange(of: locationManager.isLoading) { wasLoading, isLoading in
+                // Auto-snapshot for new departures when location request finishes
+                if wasLoading && !isLoading,
+                   departure == nil,
+                   originCoordinate == nil,
+                   locationManager.userLocation != nil {
                     snapshotCurrentLocation()
                 }
             }
@@ -403,8 +485,49 @@ struct DepartureEditorView: View {
     
     private func snapshotCurrentLocation() {
         if let userLoc = locationManager.userLocation {
-            originCoordinate = userLoc
-            originName = "Current Location"
+            originName = originName ?? "Current Location"
+            
+            // Reverse geocode for Smart Subtitle
+            let geocoder = CLGeocoder()
+            geocoder.reverseGeocodeLocation(CLLocation(latitude: userLoc.latitude, longitude: userLoc.longitude)) { placemarks, error in
+                if let placemark = placemarks?.first {
+                    // Smart Title: The Address (e.g. 323 Lander Ave)
+                    let streetNumber = placemark.subThoroughfare ?? ""
+                    let streetName = placemark.thoroughfare ?? ""
+                    let fullAddress = "\(streetNumber) \(streetName)".trimmingCharacters(in: .whitespaces)
+                    
+                    if !fullAddress.isEmpty {
+                        originName = fullAddress
+                    } else {
+                        originName = placemark.name ?? "Current Location"
+                    }
+                    
+                    // Smart Subtitle: City, State Zip (e.g. San Francisco, CA 94108)
+                    let city = placemark.locality ?? ""
+                    let state = placemark.administrativeArea ?? ""
+                    let zip = placemark.postalCode ?? ""
+                    
+                    var parts: [String] = []
+                    if !city.isEmpty { parts.append(city) }
+                    if !state.isEmpty { parts.append(state) }
+                    let locationStr = parts.joined(separator: ", ")
+                    
+                    if !locationStr.isEmpty && !zip.isEmpty {
+                        originAddress = "\(locationStr) \(zip)"
+                    } else if !locationStr.isEmpty {
+                        originAddress = locationStr
+                    } else {
+                        // Fallback
+                        let timeStr = DateFormatter.localizedString(from: Date(), dateStyle: .none, timeStyle: .short)
+                        originAddress = "Snapshot • \(timeStr)"
+                    }
+                    
+                } else {
+                    originName = "Current Location"
+                    originAddress = "Snapshot: \(userLoc.latitude.formatted(.number.precision(.fractionLength(4)))), \(userLoc.longitude.formatted(.number.precision(.fractionLength(4))))"
+                }
+            }
+            
             calculateLiveTravelTime()
         }
     }
@@ -452,11 +575,13 @@ struct DepartureEditorView: View {
             
             // Save origin (snapshot)
             departure.originName = originName
+            departure.originAddress = originAddress
             departure.originLat = originCoordinate?.latitude
             departure.originLong = originCoordinate?.longitude
             
             // Save destination
             departure.destinationName = destinationName
+            departure.destinationAddress = destinationAddress
             departure.destinationLat = destinationCoordinate?.latitude
             departure.destinationLong = destinationCoordinate?.longitude
             departure.liveTravelTime = liveTravelTime
@@ -479,11 +604,13 @@ struct DepartureEditorView: View {
             
             // Save origin (snapshot)
             newDeparture.originName = originName
+            newDeparture.originAddress = originAddress
             newDeparture.originLat = originCoordinate?.latitude
             newDeparture.originLong = originCoordinate?.longitude
             
             // Save destination
             newDeparture.destinationName = destinationName
+            newDeparture.destinationAddress = destinationAddress
             newDeparture.destinationLat = destinationCoordinate?.latitude
             newDeparture.destinationLong = destinationCoordinate?.longitude
             newDeparture.liveTravelTime = liveTravelTime

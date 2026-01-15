@@ -20,11 +20,13 @@ final class Departure {
     var originLat: Double?
     var originLong: Double?
     var originName: String?
+    var originAddress: String? // Detailed address (optional)
     
     // Destination (To)
     var destinationLat: Double?
     var destinationLong: Double?
     var destinationName: String?
+    var destinationAddress: String? // Detailed address (optional)
     
     // Settings
     var useLiveTraffic: Bool
