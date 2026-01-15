@@ -107,13 +107,13 @@ struct AddPlaceSheet: View {
                             
                             Divider()
                             
-                            // Label & Icon Input
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Label")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                
-                                HStack(alignment: .center, spacing: 16) {
+                            // Label & Icon Input (Stacked Row)
+                            HStack(alignment: .center, spacing: 12) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Label")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                    
                                     ZStack(alignment: .leading) {
                                         if name.isEmpty {
                                             Text(placeholders[placeholderIndex])
@@ -138,10 +138,12 @@ struct AddPlaceSheet: View {
                                             }
                                         }
                                     }
-                                    
-                                    // Icon Picker
-                                    EmojiPickerButton(selectedEmoji: $selectedIcon)
                                 }
+                                
+                                Spacer()
+                                
+                                // Icon Picker
+                                EmojiPickerButton(selectedEmoji: $selectedIcon)
                             }
                             
                             // Save Button
