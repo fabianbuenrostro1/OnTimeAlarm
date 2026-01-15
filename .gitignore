@@ -1,0 +1,37 @@
+# Xcode
+.DS_Store
+*.swp
+*.lock
+*~.nib
+
+# Build generated
+build/
+DerivedData/
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# CocoaPods
+Pods/
+Podefile.lock
+
+# Swift Package Manager
+.swiftpm/
+.build/
+
+# Xcode Project settings
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.playground/timeline.xctimeline
+*.playground/playground.xcworkspace
+
+# User settings
+xcuserdata/
+
+# SwiftData
+*.store
+*.store-shm
+*.store-wal
+
+# Local Config
+project.yml
