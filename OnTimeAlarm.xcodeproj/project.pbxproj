@@ -20,6 +20,7 @@
 		82C17CF98F6F5FAFF50BA71A /* DepartureWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97EEF29135637BDF9FCEDB7A /* DepartureWizardView.swift */; };
 		8CE78EC28BB83D36FED131D0 /* LocationSearchSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E2C0BF418D2EAAE7BF87933 /* LocationSearchSheet.swift */; };
 		9510E4BBC7173FE58CD34A12 /* Departure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C98AEBC096AEF0A64A0AAE7 /* Departure.swift */; };
+		A30A0E0328F810DF57CE314E /* EmojiPickerButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26EB9E3019A0F4FAC5ECFDD7 /* EmojiPickerButton.swift */; };
 		AAFA40FA09C90A35B529FF88 /* DepartureListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB2474D62B8E1136BA21870 /* DepartureListView.swift */; };
 		B906B3F566186C6B44700C5E /* LocationSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C8190A45D1AFA6A181161D0 /* LocationSearchService.swift */; };
 		BB92B3344BF752B6E234A84F /* AlarmSettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43768DB1F350FBC3B0BBF532 /* AlarmSettingsSheet.swift */; };
@@ -35,6 +36,7 @@
 		0C98AEBC096AEF0A64A0AAE7 /* Departure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Departure.swift; sourceTree = "<group>"; };
 		147ABE59FE1D42F05CDA0A84 /* BarrageScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarrageScheduler.swift; sourceTree = "<group>"; };
 		22A31552A5B438BE24CCED42 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
+		26EB9E3019A0F4FAC5ECFDD7 /* EmojiPickerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiPickerButton.swift; sourceTree = "<group>"; };
 		29F7ACF88FFF6EC409B2CED1 /* DepartureCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureCardView.swift; sourceTree = "<group>"; };
 		3E2C0BF418D2EAAE7BF87933 /* LocationSearchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchSheet.swift; sourceTree = "<group>"; };
 		43768DB1F350FBC3B0BBF532 /* AlarmSettingsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSettingsSheet.swift; sourceTree = "<group>"; };
@@ -90,6 +92,7 @@
 				C1EEEB884B4831D4F57C8D2E /* DepartureListRow.swift */,
 				4BB2474D62B8E1136BA21870 /* DepartureListView.swift */,
 				97EEF29135637BDF9FCEDB7A /* DepartureWizardView.swift */,
+				26EB9E3019A0F4FAC5ECFDD7 /* EmojiPickerButton.swift */,
 				22A31552A5B438BE24CCED42 /* EmptyStateView.swift */,
 				3E2C0BF418D2EAAE7BF87933 /* LocationSearchSheet.swift */,
 				8218DA1857045E26C41E6768 /* LocationSelectionSheet.swift */,
@@ -197,6 +200,7 @@
 				4AA83E84645A7F9F0018F74D /* DepartureListRow.swift in Sources */,
 				AAFA40FA09C90A35B529FF88 /* DepartureListView.swift in Sources */,
 				82C17CF98F6F5FAFF50BA71A /* DepartureWizardView.swift in Sources */,
+				A30A0E0328F810DF57CE314E /* EmojiPickerButton.swift in Sources */,
 				EC22FB9542796A5D8283B74C /* EmptyStateView.swift in Sources */,
 				3D7ABD5AEF80C49315FA2374 /* LocationManager.swift in Sources */,
 				B906B3F566186C6B44700C5E /* LocationSearchService.swift in Sources */,

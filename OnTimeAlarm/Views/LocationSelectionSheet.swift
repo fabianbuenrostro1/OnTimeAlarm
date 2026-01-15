@@ -24,6 +24,7 @@ struct LocationSelectionSheet: View {
     var onUseCurrentLocation: (() -> Void)? = nil
     
     @State private var showingSearch = false
+    @State private var showingAddPlace = false
     @State private var cameraPosition: MapCameraPosition = .automatic
     
     var body: some View {
@@ -106,39 +107,63 @@ struct LocationSelectionSheet: View {
                             .buttonStyle(.plain)
                             
                             // MARK: Saved Places Row
-                            if !savedPlaces.isEmpty {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("Saved Places")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                    
-                                    ScrollView(.horizontal, showsIndicators: false) {
-                                        HStack(spacing: 12) {
-                                            ForEach(savedPlaces) { place in
-                                                Button {
-                                                    selectPlace(place)
-                                                } label: {
-                                                    VStack(spacing: 6) {
-                                                        Circle()
-                                                            .fill(Color.blue)
-                                                            .frame(width: 50, height: 50)
-                                                            .overlay {
-                                                                Text(place.icon)
-                                                                    .font(.title2)
-                                                            }
-                                                            .shadow(color: .black.opacity(0.1), radius: 3, y: 2)
-                                                        
-                                                        Text(place.name)
-                                                            .font(.caption)
-                                                            .fontWeight(.medium)
-                                                            .foregroundStyle(.primary)
-                                                            .lineLimit(1)
-                                                            .frame(maxWidth: 60)
-                                                    }
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Saved Places")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 16) {
+                                        ForEach(savedPlaces) { place in
+                                            Button {
+                                                selectPlace(place)
+                                            } label: {
+                                                VStack(spacing: 6) {
+                                                    Circle()
+                                                        .strokeBorder(Color.blue, lineWidth: 2)
+                                                        .frame(width: 50, height: 50)
+                                                        .background(Circle().fill(Color(.systemBackground)))
+                                                        .overlay {
+                                                            Text(place.icon)
+                                                                .font(.title2)
+                                                        }
+                                                        .shadow(color: .black.opacity(0.08), radius: 3, y: 2)
+                                                    
+                                                    Text(place.name)
+                                                        .font(.caption)
+                                                        .fontWeight(.medium)
+                                                        .foregroundStyle(.primary)
+                                                        .lineLimit(2)
+                                                        .multilineTextAlignment(.center)
+                                                        .frame(width: 70)
                                                 }
-                                                .buttonStyle(.plain)
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                        
+                                        // Add New Button
+                                        Button {
+                                            showingAddPlace = true
+                                        } label: {
+                                            VStack(spacing: 6) {
+                                                Circle()
+                                                    .strokeBorder(Color.blue.opacity(0.5), lineWidth: 2)
+                                                    .frame(width: 50, height: 50)
+                                                    .background(Circle().fill(Color(.systemBackground)))
+                                                    .overlay {
+                                                        Image(systemName: "plus")
+                                                            .font(.title3)
+                                                            .foregroundStyle(.blue)
+                                                    }
+                                                
+                                                Text("Add")
+                                                    .font(.caption)
+                                                    .fontWeight(.medium)
+                                                    .foregroundStyle(.primary)
+                                                    .frame(width: 70)
                                             }
                                         }
+                                        .buttonStyle(.plain)
                                     }
                                 }
                             }
@@ -207,6 +232,9 @@ struct LocationSelectionSheet: View {
                         ))
                     }
                 }
+            }
+            .sheet(isPresented: $showingAddPlace) {
+                AddPlaceSheet()
             }
             .onAppear {
                 if let coord = coordinate {

@@ -16,9 +16,6 @@ struct AddPlaceSheet: View {
     // Map camera position
     @State private var cameraPosition: MapCameraPosition = .automatic
     
-    // Icons available for selection
-    let icons = ["📍", "🏠", "💼", "💪", "🎓", "❤️", "☕️", "🛒", "🏥", "✈️"]
-    
     var isFormValid: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty && coordinate != nil
     }
@@ -117,32 +114,16 @@ struct AddPlaceSheet: View {
                             
                             Divider()
                             
-                            // Icon Selector
-                            VStack(alignment: .leading, spacing: 10) {
+                            // Icon Selector - Native Emoji Picker
+                            VStack(alignment: .leading, spacing: 12) {
                                 Text("Icon")
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                                 
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack(spacing: 10) {
-                                        ForEach(icons, id: \.self) { icon in
-                                            Text(icon)
-                                                .font(.title2)
-                                                .frame(width: 46, height: 46)
-                                                .background(selectedIcon == icon ? Color.blue.opacity(0.15) : Color(.systemGray6))
-                                                .clipShape(Circle())
-                                                .overlay {
-                                                    if selectedIcon == icon {
-                                                        Circle().stroke(Color.blue, lineWidth: 2.5)
-                                                    }
-                                                }
-                                                .onTapGesture {
-                                                    withAnimation(.spring(response: 0.3)) {
-                                                        selectedIcon = icon
-                                                    }
-                                                }
-                                        }
-                                    }
+                                HStack {
+                                    Spacer()
+                                    EmojiPickerButton(selectedEmoji: $selectedIcon)
+                                    Spacer()
                                 }
                             }
                             
