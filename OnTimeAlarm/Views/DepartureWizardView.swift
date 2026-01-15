@@ -475,16 +475,14 @@ struct DepartureWizardView: View {
     @ViewBuilder
     private var timePickerSheet: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 0) {
                 DatePicker(
-                    "Arrival Time",
+                    "",
                     selection: $arrivalTime,
-                    displayedComponents: [.date, .hourAndMinute]
+                    displayedComponents: .hourAndMinute
                 )
-                .datePickerStyle(.graphical)
-                .padding()
-                
-                Spacer()
+                .datePickerStyle(.wheel)
+                .labelsHidden()
             }
             .navigationTitle("Arrive By")
             .navigationBarTitleDisplayMode(.inline)
@@ -494,7 +492,7 @@ struct DepartureWizardView: View {
                 }
             }
         }
-        .presentationDetents([.large])
+        .presentationDetents([.medium])
     }
     
     // MARK: - Logic
