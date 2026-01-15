@@ -3,6 +3,11 @@ import SwiftData
 import MapKit
 import CoreLocation
 
+enum WizardSearchType {
+    case origin
+    case destination
+}
+
 struct DepartureWizardView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -57,6 +62,9 @@ struct DepartureWizardView: View {
     @State private var showingFromPicker: Bool = false
     @State private var showingToPicker: Bool = false
     @State private var showingTimePicker: Bool = false
+    @State private var showingLocationSearch: Bool = false
+    @State private var showingAlarmSettings: Bool = false
+    @State private var activeSearchType: WizardSearchType = .destination
     
     private var isEditing: Bool { departure != nil }
     
@@ -98,7 +106,7 @@ struct DepartureWizardView: View {
                     
                     resultHeroSection
                     
-                    barrageModeSection
+                    alarmSentenceSection
                     
                     Spacer(minLength: 100)
                 }
@@ -123,6 +131,33 @@ struct DepartureWizardView: View {
             }
             .sheet(isPresented: $showingTimePicker) {
                 timePickerSheet
+            }
+            .sheet(isPresented: $showingLocationSearch) {
+                LocationSearchSheet { coordinate, name, address in
+                    switch activeSearchType {
+                    case .origin:
+                        isUsingCurrentLocation = false
+                        fromName = name
+                        fromAddress = address
+                        fromCoordinate = coordinate
+                    case .destination:
+                        toName = name
+                        toAddress = address
+                        toCoordinate = coordinate
+                        if label.isEmpty {
+                            label = name
+                        }
+                    }
+                    calculateTravelTime()
+                }
+            }
+            .sheet(isPresented: $showingAlarmSettings) {
+                AlarmSettingsSheet(
+                    isBarrageEnabled: $isBarrageEnabled,
+                    preWakeAlarms: $preWakeAlarms,
+                    postWakeAlarms: $postWakeAlarms,
+                    barrageInterval: $barrageInterval
+                )
             }
             .onChange(of: toName) { _, _ in
                 calculateTravelTime()
@@ -255,30 +290,52 @@ struct DepartureWizardView: View {
         }
     }
     
-    // MARK: - Barrage Mode Section
+    // MARK: - Alarm Sentence Section
     @ViewBuilder
-    private var barrageModeSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Toggle(isOn: $isBarrageEnabled) {
-                HStack {
-                    Image(systemName: "bell.badge.fill")
-                        .foregroundStyle(.orange)
-                    Text("Barrage Mode")
-                        .fontWeight(.medium)
-                }
-            }
-            .tint(.orange)
+    private var alarmSentenceSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("And I need")
+                .font(.title3)
+                .foregroundStyle(.secondary)
             
-            if isBarrageEnabled {
-                Text("\(preWakeAlarms) alarms before • \(postWakeAlarms) after")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+            chipButton(
+                icon: isBarrageEnabled ? "bell.badge.waveform.fill" : "bell.fill",
+                iconColor: isBarrageEnabled ? .orange : .gray,
+                title: alarmSummaryTitle,
+                subtitle: alarmSummarySubtitle,
+                action: { showingAlarmSettings = true }
+            )
+            
+            Text("to ensure I'm up.")
+                .font(.title3)
+                .foregroundStyle(.secondary)
         }
-        .padding(16)
-        .background(Color(.systemGray6).opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
         .padding(.horizontal, 20)
+        .padding(.top, 8)
+    }
+    
+    private var alarmSummaryTitle: String {
+        if isBarrageEnabled {
+            if preWakeAlarms > 0 && postWakeAlarms > 0 {
+                return "\(preWakeAlarms) alarms before & \(postWakeAlarms) after"
+            } else if preWakeAlarms > 0 {
+                return "\(preWakeAlarms) alarms before wake up"
+            } else if postWakeAlarms > 0 {
+                return "\(postWakeAlarms) safety alarms after"
+            } else {
+                return "Multiple alarms"
+            }
+        } else {
+            return "Just one alarm"
+        }
+    }
+    
+    private var alarmSummarySubtitle: String? {
+        if isBarrageEnabled {
+            return "Active at wake up"
+        } else {
+            return "Standard mode"
+        }
     }
     
     // MARK: - Chip Button
@@ -396,7 +453,10 @@ struct DepartureWizardView: View {
                 Section {
                     Button {
                         showingFromPicker = false
-                        // TODO: Open location search
+                        activeSearchType = .origin
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            showingLocationSearch = true
+                        }
                     } label: {
                         Label("Search for a location", systemImage: "magnifyingglass")
                     }
@@ -447,7 +507,10 @@ struct DepartureWizardView: View {
                 Section {
                     Button {
                         showingToPicker = false
-                        // TODO: Open location search
+                        activeSearchType = .destination
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            showingLocationSearch = true
+                        }
                     } label: {
                         Label("Search for a location", systemImage: "magnifyingglass")
                     }

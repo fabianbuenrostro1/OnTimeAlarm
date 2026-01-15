@@ -12,3 +12,6 @@
     - [x] Create `data_schema.md` (SwiftData Models) <!-- id: 11 -->
     - [x] Create `component_inventory.md` (SwiftUI View List) <!-- id: 12 -->
     - [x] Create `mission_brief.md` (Project Overview) <!-- id: 13 -->
+- [x] **Phase 6: Conversational Wizard & Barrage Mode**
+    - [x] Implement `AlarmSettingsSheet`
+    - [x] Refine `DepartureWizardView` for conversational flow
