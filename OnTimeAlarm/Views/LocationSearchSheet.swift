@@ -17,6 +17,7 @@ struct LocationSearchSheet: View {
                     HStack(spacing: 8) {
                         Image(systemName: "magnifyingglass")
                             .foregroundStyle(.secondary)
+                            .font(.system(size: 18, weight: .medium))
                         
                         TextField("Address or place name", text: $searchService.searchQuery)
                             .focused($isFocused)
@@ -28,23 +29,26 @@ struct LocationSearchSheet: View {
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundStyle(.secondary)
+                                    .font(.system(size: 18))
                             }
+                            .transition(.scale.combined(with: .opacity))
                         }
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 12)
                     .background(Color(.systemGray6))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .animation(.spring(response: 0.35, dampingFraction: 0.7), value: searchService.searchQuery.isEmpty)
                     
                     // Dismiss Button (X)
                     Button {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 16, weight: .bold))
                             .foregroundStyle(.secondary)
-                            .padding(8)
-                            .background(Color(.systemGray6).opacity(0.5))
+                            .padding(10)
+                            .background(Color(.systemGray6))
                             .clipShape(Circle())
                     }
                 }

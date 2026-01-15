@@ -13,6 +13,11 @@ struct AddPlaceSheet: View {
     @State private var coordinate: CLLocationCoordinate2D?
     @State private var showingSearch = false
     
+    // Placeholder Cycling
+    @State private var placeholderIndex = 0
+    private let placeholders = ["School", "Work", "Gym", "Home"]
+    private let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
+    
     // Map camera position
     @State private var cameraPosition: MapCameraPosition = .automatic
     
@@ -107,9 +112,31 @@ struct AddPlaceSheet: View {
                                 Text("Label")
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
-                                TextField("Name this place (required)", text: $name)
-                                    .font(.title3)
-                                    .textFieldStyle(.plain)
+                                
+                                ZStack(alignment: .leading) {
+                                    if name.isEmpty {
+                                        Text(placeholders[placeholderIndex])
+                                            .font(.title3)
+                                            .foregroundStyle(.tertiary)
+                                            .transition(.asymmetric(
+                                                insertion: .move(edge: .bottom).combined(with: .opacity),
+                                                removal: .move(edge: .top).combined(with: .opacity)
+                                            ))
+                                            .id("placeholder-\(placeholderIndex)")
+                                    }
+                                    
+                                    TextField("", text: $name)
+                                        .font(.title3)
+                                        .textFieldStyle(.plain)
+                                }
+                                .animation(.spring(response: 0.5, dampingFraction: 0.7), value: placeholderIndex)
+                                .onReceive(timer) { _ in
+                                    if name.isEmpty {
+                                        withAnimation {
+                                            placeholderIndex = (placeholderIndex + 1) % placeholders.count
+                                        }
+                                    }
+                                }
                             }
                             
                             Divider()
