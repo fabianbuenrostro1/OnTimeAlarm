@@ -63,7 +63,6 @@ struct DepartureWizardView: View {
     @State private var showingToPicker: Bool = false
     @State private var showingTimePicker: Bool = false
     @State private var showingLocationSearch: Bool = false
-    @State private var showingAlarmSettings: Bool = false
     @State private var activeSearchType: WizardSearchType = .destination
     
     private var isEditing: Bool { departure != nil }
@@ -105,8 +104,6 @@ struct DepartureWizardView: View {
                         .padding(.horizontal, 20)
                     
                     resultHeroSection
-                    
-                    alarmSentenceSection
                     
                     Spacer(minLength: 100)
                 }
@@ -151,13 +148,6 @@ struct DepartureWizardView: View {
                     calculateTravelTime()
                 }
             }
-            .sheet(isPresented: $showingAlarmSettings) {
-                AlarmSettingsSheet(
-                    isBarrageEnabled: $isBarrageEnabled,
-                    preWakeAlarms: $preWakeAlarms,
-                    postWakeAlarms: $postWakeAlarms,
-                    barrageInterval: $barrageInterval
-                )
             }
             .onChange(of: toName) { _, _ in
                 calculateTravelTime()
@@ -287,54 +277,6 @@ struct DepartureWizardView: View {
         } else if isLoadingTravel {
             ProgressView()
                 .scaleEffect(0.8)
-        }
-    }
-    
-    // MARK: - Alarm Sentence Section
-    @ViewBuilder
-    private var alarmSentenceSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("And I need")
-                .font(.title3)
-                .foregroundStyle(.secondary)
-            
-            chipButton(
-                icon: isBarrageEnabled ? "bell.badge.waveform.fill" : "bell.fill",
-                iconColor: isBarrageEnabled ? .orange : .gray,
-                title: alarmSummaryTitle,
-                subtitle: alarmSummarySubtitle,
-                action: { showingAlarmSettings = true }
-            )
-            
-            Text("to ensure I'm up.")
-                .font(.title3)
-                .foregroundStyle(.secondary)
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 8)
-    }
-    
-    private var alarmSummaryTitle: String {
-        if isBarrageEnabled {
-            if preWakeAlarms > 0 && postWakeAlarms > 0 {
-                return "\(preWakeAlarms) alarms before & \(postWakeAlarms) after"
-            } else if preWakeAlarms > 0 {
-                return "\(preWakeAlarms) alarms before wake up"
-            } else if postWakeAlarms > 0 {
-                return "\(postWakeAlarms) safety alarms after"
-            } else {
-                return "Multiple alarms"
-            }
-        } else {
-            return "Just one alarm"
-        }
-    }
-    
-    private var alarmSummarySubtitle: String? {
-        if isBarrageEnabled {
-            return "Active at wake up"
-        } else {
-            return "Standard mode"
         }
     }
     
