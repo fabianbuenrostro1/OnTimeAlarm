@@ -21,7 +21,6 @@
 		9510E4BBC7173FE58CD34A12 /* Departure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C98AEBC096AEF0A64A0AAE7 /* Departure.swift */; };
 		AAFA40FA09C90A35B529FF88 /* DepartureListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB2474D62B8E1136BA21870 /* DepartureListView.swift */; };
 		B906B3F566186C6B44700C5E /* LocationSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C8190A45D1AFA6A181161D0 /* LocationSearchService.swift */; };
-		BB92B3344BF752B6E234A84F /* AlarmSettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43768DB1F350FBC3B0BBF532 /* AlarmSettingsSheet.swift */; };
 		CF5B815EACAE66F25928D882 /* DepartureEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49C2212B35CE9A3E3CA0241B /* DepartureEditorView.swift */; };
 		D4827B52A17BC8FE887F960E /* PlacesRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E4E8DF5C6D20B038E5E409 /* PlacesRow.swift */; };
 		D5EE3422DFD753BFDA7DF8FF /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFA3C3CC3F55B111294FAE8C /* NotificationManager.swift */; };
@@ -36,7 +35,6 @@
 		22A31552A5B438BE24CCED42 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		29F7ACF88FFF6EC409B2CED1 /* DepartureCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureCardView.swift; sourceTree = "<group>"; };
 		3E2C0BF418D2EAAE7BF87933 /* LocationSearchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchSheet.swift; sourceTree = "<group>"; };
-		43768DB1F350FBC3B0BBF532 /* AlarmSettingsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSettingsSheet.swift; sourceTree = "<group>"; };
 		49C2212B35CE9A3E3CA0241B /* DepartureEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureEditorView.swift; sourceTree = "<group>"; };
 		4BB2474D62B8E1136BA21870 /* DepartureListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureListView.swift; sourceTree = "<group>"; };
 		4CCBF702C7CA8403572AEC52 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
@@ -82,7 +80,6 @@
 			isa = PBXGroup;
 			children = (
 				EDE00E897DC5AECFCAE537D8 /* AddPlaceSheet.swift */,
-				43768DB1F350FBC3B0BBF532 /* AlarmSettingsSheet.swift */,
 				29F7ACF88FFF6EC409B2CED1 /* DepartureCardView.swift */,
 				49C2212B35CE9A3E3CA0241B /* DepartureEditorView.swift */,
 				C1EEEB884B4831D4F57C8D2E /* DepartureListRow.swift */,
@@ -186,7 +183,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				4DCF639EB447A557CE6363F0 /* AddPlaceSheet.swift in Sources */,
-				BB92B3344BF752B6E234A84F /* AlarmSettingsSheet.swift in Sources */,
 				308CAF00822E6B7163FDF34A /* BarrageScheduler.swift in Sources */,
 				9510E4BBC7173FE58CD34A12 /* Departure.swift in Sources */,
 				DA7ADCD6A97A023580AC8242 /* DepartureCardView.swift in Sources */,

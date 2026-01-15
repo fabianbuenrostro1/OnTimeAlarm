@@ -13,5 +13,5 @@
     - [x] Create `component_inventory.md` (SwiftUI View List) <!-- id: 12 -->
     - [x] Create `mission_brief.md` (Project Overview) <!-- id: 13 -->
 - [x] **Phase 6: Conversational Wizard & Barrage Mode**
-    - [x] Implement `AlarmSettingsSheet` (Backend/View ready)
-    - [x] Simplify `DepartureWizardView` (Removed configuration per user request)
+    - [x] Implement `AlarmSettingsSheet`
+    - [x] Refine `DepartureWizardView` for conversational flow
