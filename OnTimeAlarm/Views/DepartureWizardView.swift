@@ -224,14 +224,18 @@ struct DepartureWizardView: View {
                 .tint(.orange)
                 
                 Spacer()
+                
+                Text("every")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
             }
             .padding(.vertical, 14)
             .padding(.horizontal, 16)
             .background(Color(.systemGray6))
             .clipShape(RoundedRectangle(cornerRadius: 14))
             
-            // Repeat days row
-            repeatDaysRow
+            // Days selector (inline)
+            repeatDaysStrip
             
             prepDurationRow
         }
@@ -287,52 +291,31 @@ struct DepartureWizardView: View {
     }
     
     @ViewBuilder
-    private var repeatDaysRow: some View {
+    private var repeatDaysStrip: some View {
         let dayLabels = ["S", "M", "T", "W", "T", "F", "S"]
-        // Calendar weekday: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
         
-        VStack(alignment: .leading, spacing: 12) {
-            Text(repeatDays.isEmpty ? "One-time alarm" : repeatSummary)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            
-            HStack(spacing: 8) {
-                ForEach(1...7, id: \.self) { day in
-                    let isSelected = repeatDays.contains(day)
-                    
-                    Button {
-                        withAnimation(.snappy) {
-                            if isSelected {
-                                repeatDays.remove(day)
-                            } else {
-                                repeatDays.insert(day)
-                            }
+        HStack(spacing: 8) {
+            ForEach(1...7, id: \.self) { day in
+                let isSelected = repeatDays.contains(day)
+                
+                Button {
+                    withAnimation(.snappy) {
+                        if isSelected {
+                            repeatDays.remove(day)
+                        } else {
+                            repeatDays.insert(day)
                         }
-                    } label: {
-                        Text(dayLabels[day - 1])
-                            .font(.subheadline.weight(isSelected ? .semibold : .regular))
-                            .foregroundStyle(isSelected ? .white : .primary)
-                            .frame(width: 40, height: 40)
-                            .background(isSelected ? Color.orange : Color(.systemGray6))
-                            .clipShape(Circle())
                     }
-                    .buttonStyle(.plain)
+                } label: {
+                    Text(dayLabels[day - 1])
+                        .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                        .foregroundStyle(isSelected ? .white : .primary)
+                        .frame(width: 40, height: 40)
+                        .background(isSelected ? Color.orange : Color(.systemGray6))
+                        .clipShape(Circle())
                 }
+                .buttonStyle(.plain)
             }
-        }
-    }
-    
-    private var repeatSummary: String {
-        if repeatDays.count == 7 {
-            return "Every day"
-        } else if repeatDays == Set([2, 3, 4, 5, 6]) {
-            return "Weekdays"
-        } else if repeatDays == Set([1, 7]) {
-            return "Weekends"
-        } else {
-            let dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-            let selected = (1...7).filter { repeatDays.contains($0) }.map { dayNames[$0 - 1] }
-            return selected.joined(separator: ", ")
         }
     }
     
