@@ -17,6 +17,7 @@
 		4DCF639EB447A557CE6363F0 /* AddPlaceSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDE00E897DC5AECFCAE537D8 /* AddPlaceSheet.swift */; };
 		547C290D3CB99D68F0FE0408 /* MapPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7529CB3FB337E37EE376F570 /* MapPreviewView.swift */; };
 		7228ED227C6E9F418AA10A3D /* TimeCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD834537C082148EE9D02EC3 /* TimeCalculator.swift */; };
+		74918DC7570A0E419AD77895 /* DepartureCardComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F05D665D3FE04DC9FB53724F /* DepartureCardComponents.swift */; };
 		82C17CF98F6F5FAFF50BA71A /* DepartureWizardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97EEF29135637BDF9FCEDB7A /* DepartureWizardView.swift */; };
 		8CE78EC28BB83D36FED131D0 /* LocationSearchSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E2C0BF418D2EAAE7BF87933 /* LocationSearchSheet.swift */; };
 		9510E4BBC7173FE58CD34A12 /* Departure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C98AEBC096AEF0A64A0AAE7 /* Departure.swift */; };
@@ -56,6 +57,7 @@
 		D22479293673B91377874F84 /* SavedPlace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedPlace.swift; sourceTree = "<group>"; };
 		E1E4E8DF5C6D20B038E5E409 /* PlacesRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacesRow.swift; sourceTree = "<group>"; };
 		EDE00E897DC5AECFCAE537D8 /* AddPlaceSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddPlaceSheet.swift; sourceTree = "<group>"; };
+		F05D665D3FE04DC9FB53724F /* DepartureCardComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureCardComponents.swift; sourceTree = "<group>"; };
 		FD834537C082148EE9D02EC3 /* TimeCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeCalculator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -87,6 +89,7 @@
 			children = (
 				EDE00E897DC5AECFCAE537D8 /* AddPlaceSheet.swift */,
 				43768DB1F350FBC3B0BBF532 /* AlarmSettingsSheet.swift */,
+				F05D665D3FE04DC9FB53724F /* DepartureCardComponents.swift */,
 				29F7ACF88FFF6EC409B2CED1 /* DepartureCardView.swift */,
 				49C2212B35CE9A3E3CA0241B /* DepartureEditorView.swift */,
 				C1EEEB884B4831D4F57C8D2E /* DepartureListRow.swift */,
@@ -195,6 +198,7 @@
 				BB92B3344BF752B6E234A84F /* AlarmSettingsSheet.swift in Sources */,
 				308CAF00822E6B7163FDF34A /* BarrageScheduler.swift in Sources */,
 				9510E4BBC7173FE58CD34A12 /* Departure.swift in Sources */,
+				74918DC7570A0E419AD77895 /* DepartureCardComponents.swift in Sources */,
 				DA7ADCD6A97A023580AC8242 /* DepartureCardView.swift in Sources */,
 				CF5B815EACAE66F25928D882 /* DepartureEditorView.swift in Sources */,
 				4AA83E84645A7F9F0018F74D /* DepartureListRow.swift in Sources */,

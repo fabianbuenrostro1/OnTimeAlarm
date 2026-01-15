@@ -57,7 +57,7 @@ struct DepartureListView: View {
                 .padding(.bottom, 20)
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Departures")
+            .navigationTitle("Mission Control")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     if !departures.isEmpty {
@@ -110,8 +110,8 @@ struct CompactDepartureRow: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(timeFormatter.string(from: departure.departureTime))
-                    .font(.title3)
-                    .fontWeight(.medium)
+                    .font(.system(.title3, design: .rounded))
+                    .fontWeight(.bold)
                     .foregroundStyle(departure.isEnabled ? .primary : .secondary)
                 
                 Text(departure.label)
