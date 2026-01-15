@@ -16,16 +16,30 @@ final class Departure {
     // State
     var isEnabled: Bool
     
-    // Future-proofing (Phase 2+)
+    // Origin (From) - Snapshot of location when created/edited
+    var originLat: Double?
+    var originLong: Double?
+    var originName: String?
+    
+    // Destination (To)
     var destinationLat: Double?
     var destinationLong: Double?
     var destinationName: String?
+    
+    // Settings
     var useLiveTraffic: Bool
     var transportType: String
-    var isBarrageEnabled: Bool
-    var barrageInterval: TimeInterval
     var homeKitSceneUUID: String?
     var liveTravelTime: TimeInterval? // From MapKit
+    
+    // Barrage Mode Configuration
+    var isBarrageEnabled: Bool
+    var preWakeAlarms: Int      // Alarms BEFORE wake up time (0-5)
+    var postWakeAlarms: Int     // Alarms AFTER wake up time (0-30)
+    var barrageInterval: TimeInterval  // Seconds between each alarm
+    
+    // Schedule (Repeat Days)
+    var repeatDays: [Int]  // 0 = Sunday, 1 = Monday, ... 6 = Saturday
     
     // MARK: - Computed Properties
     
@@ -44,6 +58,12 @@ final class Departure {
         targetArrivalTime.addingTimeInterval(-effectiveTravelTime)
     }
     
+    /// Total barrage alarm count
+    var totalBarrageAlarms: Int {
+        guard isBarrageEnabled else { return 0 }
+        return preWakeAlarms + 1 + postWakeAlarms // pre + main + post
+    }
+    
     // MARK: - Initialization
     
     init(
@@ -60,10 +80,17 @@ final class Departure {
         self.staticTravelTime = staticTravelTime
         self.isEnabled = true
         
-        // Future defaults
+        // Settings defaults
         self.useLiveTraffic = false
         self.transportType = "automobile"
+        
+        // Barrage defaults
         self.isBarrageEnabled = false
-        self.barrageInterval = 60
+        self.preWakeAlarms = 2
+        self.postWakeAlarms = 5
+        self.barrageInterval = 120 // 2 minutes
+        
+        // Schedule defaults (empty = no repeat)
+        self.repeatDays = []
     }
 }

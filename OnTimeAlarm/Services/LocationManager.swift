@@ -14,6 +14,10 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBest
         authorizationStatus = manager.authorizationStatus
+        
+        #if DEBUG
+        setMockLocation()
+        #endif
     }
     
     // MARK: - Public Methods
@@ -42,7 +46,18 @@ final class LocationManager: NSObject, CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         isLoading = false
-        userLocation = locations.first?.coordinate
+        if let coordinate = locations.first?.coordinate {
+            print("LocationManager: Updated location to \(coordinate)")
+            userLocation = coordinate
+        }
+    }
+    
+    // Fallback for Simulator/Preview
+    func setMockLocation() {
+        #if DEBUG
+        // Apple Park
+        userLocation = CLLocationCoordinate2D(latitude: 37.3346, longitude: -122.0090)
+        #endif
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

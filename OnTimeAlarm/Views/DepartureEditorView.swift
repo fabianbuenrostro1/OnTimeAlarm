@@ -25,9 +25,15 @@ struct DepartureEditorView: View {
     @State private var prepDuration: TimeInterval = 1800
     @State private var staticTravelTime: TimeInterval = 1200
     
-    // Origin (departure from) location
+    // Origin (departure from) location - Snapshot based
     @State private var originName: String?
     @State private var originCoordinate: CLLocationCoordinate2D?
+    
+    // Barrage Mode
+    @State private var isBarrageEnabled: Bool = false
+    @State private var preWakeAlarms: Int = 2
+    @State private var postWakeAlarms: Int = 5
+    @State private var barrageInterval: TimeInterval = 120
     
     // Destination location
     @State private var destinationName: String?
@@ -83,35 +89,43 @@ struct DepartureEditorView: View {
             Form {
                 // Section 1: Locations
                 Section("Route") {
-                    // Origin (Departing From)
-                    Button {
-                        searchType = .origin
-                        showingLocationSearch = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "location.circle.fill")
-                                .foregroundStyle(.blue)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("From")
-                                    .font(.caption)
+                    // Origin - Snapshot Location
+                    HStack {
+                        Image(systemName: "location.fill")
+                            .foregroundStyle(.blue)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("From")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            if let name = originName {
+                                Text(name)
+                                    .foregroundStyle(.primary)
+                            } else {
+                                Text("Not set")
                                     .foregroundStyle(.secondary)
-                                if let name = originName {
-                                    Text(name)
-                                        .foregroundStyle(.primary)
-                                } else {
-                                    Text("Set departure location...")
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            
-                            Spacer()
-                            
-                            if originName != nil {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(.green)
                             }
                         }
+                        
+                        Spacer()
+                        
+                        Button {
+                            snapshotCurrentLocation()
+                        } label: {
+                            Text("Use Current")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.blue)
+                        
+                        Button {
+                            searchType = .origin
+                            showingLocationSearch = true
+                        } label: {
+                            Image(systemName: "magnifyingglass")
+                        }
+                        .buttonStyle(.bordered)
                     }
                     
                     // Destination (Going To)
@@ -198,7 +212,62 @@ struct DepartureEditorView: View {
                     }
                 }
                 
-                // Section 3: Schedule Preview
+                // Section 3: Barrage Mode
+                Section {
+                    Toggle(isOn: $isBarrageEnabled) {
+                        HStack {
+                            Image(systemName: "bell.badge.waveform.fill")
+                                .foregroundStyle(.orange)
+                            Text("Barrage Mode")
+                        }
+                    }
+                    .tint(.orange)
+                    
+                    if isBarrageEnabled {
+                        Stepper(value: $preWakeAlarms, in: 0...5) {
+                            HStack {
+                                Text("Ramp Up")
+                                Spacer()
+                                Text("\(preWakeAlarms) alarms before")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        
+                        Stepper(value: $postWakeAlarms, in: 0...30) {
+                            HStack {
+                                Text("Safety Net")
+                                Spacer()
+                                Text("\(postWakeAlarms) alarms after")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        
+                        Picker("Interval", selection: $barrageInterval) {
+                            Text("1 min").tag(TimeInterval(60))
+                            Text("2 min").tag(TimeInterval(120))
+                            Text("5 min").tag(TimeInterval(300))
+                            Text("10 min").tag(TimeInterval(600))
+                        }
+                        
+                        // Barrage Timeline Visualizer
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Preview")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            
+                            barrageTimelineView
+                        }
+                        .padding(.vertical, 4)
+                    }
+                } header: {
+                    Text("Alarm Mode")
+                } footer: {
+                    if isBarrageEnabled {
+                        Text("Fires \(preWakeAlarms + 1 + postWakeAlarms) alarms total: \(preWakeAlarms) before, 1 at wake up, \(postWakeAlarms) after.")
+                    }
+                }
+                
+                // Section 4: Schedule Preview
                 Section {
                     HStack {
                         VStack(alignment: .leading) {
@@ -280,11 +349,33 @@ struct DepartureEditorView: View {
                     targetArrivalTime = departure.targetArrivalTime
                     prepDuration = departure.prepDuration
                     staticTravelTime = departure.staticTravelTime
+                    
+                    // Load origin
+                    originName = departure.originName
+                    if let lat = departure.originLat, let long = departure.originLong {
+                        originCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
+                    }
+                    
+                    // Load destination
                     destinationName = departure.destinationName
                     if let lat = departure.destinationLat, let long = departure.destinationLong {
                         destinationCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
                     }
                     liveTravelTime = departure.liveTravelTime
+                    
+                    // Load transport mode
+                    if let mode = TravelTimeService.TransportMode.allCases.first(where: { $0.rawValue == departure.transportType }) {
+                        selectedTransportMode = mode
+                    }
+                    
+                    // Load barrage settings
+                    isBarrageEnabled = departure.isBarrageEnabled
+                    preWakeAlarms = departure.preWakeAlarms
+                    postWakeAlarms = departure.postWakeAlarms
+                    barrageInterval = departure.barrageInterval
+                } else {
+                    // New departure: snapshot current location by default
+                    snapshotCurrentLocation()
                 }
             }
         }
@@ -310,17 +401,72 @@ struct DepartureEditorView: View {
         }
     }
     
+    private func snapshotCurrentLocation() {
+        if let userLoc = locationManager.userLocation {
+            originCoordinate = userLoc
+            originName = "Current Location"
+            calculateLiveTravelTime()
+        }
+    }
+    
+    private var barrageTimelineView: some View {
+        HStack(spacing: 4) {
+            // Pre-wake dots
+            ForEach(0..<preWakeAlarms, id: \.self) { _ in
+                Circle()
+                    .fill(Color.blue.opacity(0.5))
+                    .frame(width: 8, height: 8)
+            }
+            
+            // Main wake dot
+            Circle()
+                .fill(Color.orange)
+                .frame(width: 14, height: 14)
+                .overlay {
+                    Image(systemName: "bell.fill")
+                        .font(.system(size: 8))
+                        .foregroundStyle(.white)
+                }
+            
+            // Post-wake dots
+            ForEach(0..<min(postWakeAlarms, 10), id: \.self) { i in
+                Circle()
+                    .fill(Color.red.opacity(0.3 + Double(i) * 0.07))
+                    .frame(width: 8, height: 8)
+            }
+            
+            if postWakeAlarms > 10 {
+                Text("+\(postWakeAlarms - 10)")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+    
     private func save() {
         if let departure = departure {
             departure.label = label
             departure.targetArrivalTime = targetArrivalTime
             departure.prepDuration = prepDuration
             departure.staticTravelTime = staticTravelTime
+            
+            // Save origin (snapshot)
+            departure.originName = originName
+            departure.originLat = originCoordinate?.latitude
+            departure.originLong = originCoordinate?.longitude
+            
+            // Save destination
             departure.destinationName = destinationName
             departure.destinationLat = destinationCoordinate?.latitude
             departure.destinationLong = destinationCoordinate?.longitude
             departure.liveTravelTime = liveTravelTime
             departure.transportType = selectedTransportMode.rawValue
+            
+            // Save barrage settings
+            departure.isBarrageEnabled = isBarrageEnabled
+            departure.preWakeAlarms = preWakeAlarms
+            departure.postWakeAlarms = postWakeAlarms
+            departure.barrageInterval = barrageInterval
             
             NotificationManager.shared.scheduleNotifications(for: departure)
         } else {
@@ -330,11 +476,24 @@ struct DepartureEditorView: View {
                 prepDuration: prepDuration,
                 staticTravelTime: staticTravelTime
             )
+            
+            // Save origin (snapshot)
+            newDeparture.originName = originName
+            newDeparture.originLat = originCoordinate?.latitude
+            newDeparture.originLong = originCoordinate?.longitude
+            
+            // Save destination
             newDeparture.destinationName = destinationName
             newDeparture.destinationLat = destinationCoordinate?.latitude
             newDeparture.destinationLong = destinationCoordinate?.longitude
             newDeparture.liveTravelTime = liveTravelTime
             newDeparture.transportType = selectedTransportMode.rawValue
+            
+            // Save barrage settings
+            newDeparture.isBarrageEnabled = isBarrageEnabled
+            newDeparture.preWakeAlarms = preWakeAlarms
+            newDeparture.postWakeAlarms = postWakeAlarms
+            newDeparture.barrageInterval = barrageInterval
             
             modelContext.insert(newDeparture)
             NotificationManager.shared.scheduleNotifications(for: newDeparture)
