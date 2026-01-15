@@ -5,6 +5,7 @@ struct LocationSearchSheet: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var searchService = LocationSearchService()
+    @State private var isSearchActive = false
     
     var onLocationSelected: (CLLocationCoordinate2D, String, String) -> Void
     
@@ -50,6 +51,7 @@ struct LocationSearchSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .searchable(
                 text: $searchService.searchQuery,
+                isPresented: $isSearchActive,
                 placement: .navigationBarDrawer(displayMode: .always),
                 prompt: "Address or place name"
             )
@@ -58,6 +60,18 @@ struct LocationSearchSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                }
+            }
+            .onAppear {
+                // Activate search (and keyboard) when sheet appears
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    isSearchActive = true
+                }
+            }
+            .onChange(of: isSearchActive) { oldValue, newValue in
+                // When X is pressed, isSearchActive becomes false - dismiss the sheet
+                if oldValue == true && newValue == false {
+                    dismiss()
                 }
             }
         }
@@ -80,3 +94,5 @@ struct LocationSearchSheet: View {
         print("Selected: \(name) at \(coordinate), Address: \(address)")
     }
 }
+
+
