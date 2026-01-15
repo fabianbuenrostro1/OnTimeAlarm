@@ -104,8 +104,6 @@ struct DepartureWizardView: View {
                     Divider()
                         .padding(.horizontal, 20)
                     
-                    resultHeroSection
-                    
                     alarmSentenceSection
                     
                     Spacer(minLength: 100)
