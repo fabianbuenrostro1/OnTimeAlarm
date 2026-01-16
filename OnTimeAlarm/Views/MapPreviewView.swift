@@ -7,11 +7,13 @@ struct MapPreviewView: View {
     let destinationCoordinate: CLLocationCoordinate2D?
     let transportType: MKDirectionsTransportType
     let onTap: () -> Void
-    
+    var showOpenMapsHint: Bool = true
+    var cornerRadius: CGFloat = 16
+
     @State private var route: MKRoute?
     @State private var region: MKCoordinateRegion = .init()
     @State private var isLoading = true
-    
+
     var body: some View {
         ZStack {
             Map {
@@ -75,22 +77,24 @@ struct MapPreviewView: View {
                 .background(Color(.systemGray6))
             }
             
-            // Tap hint overlay (bottom-right)
-            VStack {
-                Spacer()
-                HStack {
+            // Tap hint overlay (bottom-right) - optional
+            if showOpenMapsHint {
+                VStack {
                     Spacer()
-                    Label("Open Maps", systemImage: "arrow.up.forward.app")
-                        .font(.caption2)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 5)
-                        .background(.ultraThinMaterial, in: Capsule())
+                    HStack {
+                        Spacer()
+                        Label("Open Maps", systemImage: "arrow.up.forward.app")
+                            .font(.caption2)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(.ultraThinMaterial, in: Capsule())
+                    }
+                    .padding(.trailing, 10)
+                    .padding(.bottom, 10)
                 }
-                .padding(.trailing, 10)
-                .padding(.bottom, 10)
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
         .contentShape(Rectangle())
         .onTapGesture {
             onTap()

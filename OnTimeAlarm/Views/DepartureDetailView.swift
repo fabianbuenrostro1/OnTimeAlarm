@@ -95,115 +95,156 @@ struct DepartureDetailView: View {
     // MARK: - Body
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // 1. Custom Header Section
-                HStack(alignment: .center) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(departure.label)
-                            .font(.title2)
-                            .fontWeight(.bold)
+        GeometryReader { geometry in
+            ZStack(alignment: .top) {
+                // Layer 1: Full-bleed map background
+                VStack(spacing: 0) {
+                    ZStack(alignment: .topLeading) {
+                        MapPreviewView(
+                            originCoordinate: originCoordinate,
+                            destinationCoordinate: destinationCoordinate,
+                            transportType: transportModeType,
+                            onTap: openInMaps,
+                            showOpenMapsHint: false
+                        )
+                        .frame(height: geometry.size.height * 0.42)
 
+                        // Traffic Badge Overlay
                         HStack(spacing: 4) {
-                            Image(systemName: transportModeIcon)
+                            Image(systemName: trafficStatus.icon)
+                            Text(trafficStatus.label)
                                 .font(.caption)
-                            Text(transportModeLabel)
-                                .font(.caption)
-                                .fontWeight(.medium)
+                                .fontWeight(.bold)
                         }
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(trafficStatus.color)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(.regularMaterial, in: Capsule())
+                        .padding(.top, geometry.safeAreaInsets.top + 50)
+                        .padding(.leading, 12)
                     }
 
                     Spacer()
-
-                    Button {
-                        showingEditor = true
-                    } label: {
-                        Image(systemName: "pencil.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.secondary)
-                            .symbolRenderingMode(.hierarchical)
-                    }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .ignoresSafeArea(edges: .top)
 
-                // 2. Map Hero (Full Width)
-                ZStack(alignment: .topLeading) {
-                    MapPreviewView(
-                        originCoordinate: originCoordinate,
-                        destinationCoordinate: destinationCoordinate,
-                        transportType: transportModeType,
-                        onTap: openInMaps
-                    )
-                    .frame(height: 260)
+                // Layer 2: Scrollable floating card
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Spacer to push card below map
+                        Color.clear
+                            .frame(height: geometry.size.height * 0.35)
 
-                    // Traffic Badge Overlay
-                    HStack(spacing: 4) {
-                        Image(systemName: trafficStatus.icon)
-                        Text(trafficStatus.label)
-                            .font(.caption)
-                            .fontWeight(.bold)
-                    }
-                    .foregroundStyle(trafficStatus.color)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(.regularMaterial, in: Capsule())
-                    .padding(12)
-                }
+                        // Floating Card
+                        VStack(spacing: 0) {
+                            // Drag indicator
+                            Capsule()
+                                .fill(Color(.systemGray4))
+                                .frame(width: 36, height: 5)
+                                .padding(.top, 8)
+                                .padding(.bottom, 12)
 
-                // 3. Content Section with Headers
-                VStack(spacing: 16) {
-                    // Route Section
-                    VStack(alignment: .leading, spacing: 8) {
-                        sectionHeader("Route")
-                        CompactLocationFooterView(
-                            originName: originDisplayName,
-                            destinationName: destinationDisplayName
+                            // Card Content
+                            VStack(spacing: 16) {
+                                // Card Header: Title + Toggle
+                                HStack(alignment: .center) {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(departure.label)
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+
+                                        HStack(spacing: 4) {
+                                            Image(systemName: transportModeIcon)
+                                                .font(.caption)
+                                            Text(transportModeLabel)
+                                                .font(.caption)
+                                                .fontWeight(.medium)
+                                        }
+                                        .foregroundStyle(.secondary)
+                                    }
+
+                                    Spacer()
+
+                                    Toggle("", isOn: $departure.isEnabled)
+                                        .labelsHidden()
+                                        .tint(departure.isBarrageEnabled ? .orange : .green)
+                                }
+
+                                Divider()
+
+                                // Route Section
+                                VStack(alignment: .leading, spacing: 8) {
+                                    sectionHeader("Route")
+                                    CompactLocationFooterView(
+                                        originName: originDisplayName,
+                                        destinationName: destinationDisplayName
+                                    )
+                                }
+
+                                Divider()
+
+                                // Schedule Section
+                                VStack(alignment: .leading, spacing: 8) {
+                                    sectionHeader("Schedule")
+                                    TimelineFlowView(
+                                        wakeTime: departure.wakeUpTime,
+                                        prepDuration: departure.prepDuration,
+                                        leaveTime: departure.departureTime,
+                                        travelTime: departure.effectiveTravelTime,
+                                        arrivalTime: departure.targetArrivalTime,
+                                        isHeavyTraffic: trafficStatus == .heavy,
+                                        alarmCount: departure.totalBarrageAlarms > 0 ? departure.totalBarrageAlarms : 1,
+                                        isBarrageEnabled: departure.isBarrageEnabled,
+                                        preWakeAlarms: departure.preWakeAlarms,
+                                        postWakeAlarms: departure.postWakeAlarms,
+                                        barrageInterval: departure.barrageInterval
+                                    )
+                                }
+
+                                // Action Button
+                                Button {
+                                    openInMaps()
+                                } label: {
+                                    Label("Open in Maps", systemImage: "arrow.triangle.turn.up.right.diamond.fill")
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.large)
+                                .tint(.blue)
+                                .padding(.top, 8)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 24)
+                        }
+                        .background(
+                            UnevenRoundedRectangle(
+                                topLeadingRadius: 24,
+                                bottomLeadingRadius: 0,
+                                bottomTrailingRadius: 0,
+                                topTrailingRadius: 24
+                            )
+                            .fill(Color(.systemBackground))
+                            .shadow(color: .black.opacity(0.15), radius: 12, y: -4)
                         )
                     }
-
-                    Divider()
-
-                    // Schedule Section
-                    VStack(alignment: .leading, spacing: 8) {
-                        sectionHeader("Schedule")
-                        TimelineFlowView(
-                            wakeTime: departure.wakeUpTime,
-                            prepDuration: departure.prepDuration,
-                            leaveTime: departure.departureTime,
-                            travelTime: departure.effectiveTravelTime,
-                            arrivalTime: departure.targetArrivalTime,
-                            isHeavyTraffic: trafficStatus == .heavy,
-                            alarmCount: departure.totalBarrageAlarms > 0 ? departure.totalBarrageAlarms : 1,
-                            isBarrageEnabled: departure.isBarrageEnabled,
-                            preWakeAlarms: departure.preWakeAlarms,
-                            postWakeAlarms: departure.postWakeAlarms,
-                            barrageInterval: departure.barrageInterval
-                        )
-                    }
                 }
-                .padding(16)
-                .background(Color(.systemBackground))
-
-                Spacer(minLength: 20)
-
-                // 4. Footer with Toggle
-                AlarmStatusFooter(
-                    alarmCount: departure.totalBarrageAlarms > 0 ? departure.totalBarrageAlarms : 1,
-                    isBarrageEnabled: departure.isBarrageEnabled,
-                    isEnabled: $departure.isEnabled,
-                    targetTime: departure.targetArrivalTime,
-                    destinationName: destinationDisplayName,
-                    preWakeAlarms: departure.preWakeAlarms,
-                    postWakeAlarms: departure.postWakeAlarms
-                )
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
             }
         }
-        .background(Color(.systemGroupedBackground))
+        .ignoresSafeArea(edges: .bottom)
+        .toolbarBackground(.hidden, for: .navigationBar)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showingEditor = true
+                } label: {
+                    Image(systemName: "pencil.circle.fill")
+                        .font(.title3)
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(.white)
+                }
+            }
+        }
         .sheet(isPresented: $showingEditor) {
             DepartureWizardView(departure: departure)
         }
