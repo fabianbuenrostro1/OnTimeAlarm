@@ -5,9 +5,12 @@ import UserNotifications
 final class NotificationManager {
     static let shared = NotificationManager()
     private init() {}
-    
+
+    /// Currently selected sound identifier (set from Preferences)
+    var selectedSoundIdentifier: String = "default"
+
     // MARK: - Authorization
-    
+
     func requestAuthorization() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound, .criticalAlert]) { granted, error in
             if let error = error {
@@ -17,24 +20,32 @@ final class NotificationManager {
             }
         }
     }
-    
+
     // MARK: - Scheduling
-    
+
     /// Schedule all notifications for a departure (including barrage if enabled)
-    func scheduleNotifications(for departure: Departure) {
+    /// - Parameters:
+    ///   - departure: The departure to schedule notifications for
+    ///   - soundIdentifier: Optional sound identifier from preferences. If nil, uses the stored value.
+    func scheduleNotifications(for departure: Departure, soundIdentifier: String? = nil) {
+        // Update sound if provided
+        if let soundId = soundIdentifier {
+            selectedSoundIdentifier = soundId
+        }
+
         guard departure.isEnabled else {
             cancelNotifications(for: departure)
             return
         }
-        
+
         // Clear existing notifications for this departure
         cancelNotifications(for: departure)
-        
+
         // Generate barrage sequence
         let alarms = BarrageScheduler.generateSequence(for: departure)
-        
-        print("NotificationManager: Scheduling \(alarms.count) alarms for '\(departure.label)'")
-        
+
+        print("NotificationManager: Scheduling \(alarms.count) alarms for '\(departure.label)' with sound '\(selectedSoundIdentifier)'")
+
         for alarm in alarms {
             scheduleNotification(
                 identifier: alarm.identifier,
@@ -83,18 +94,18 @@ final class NotificationManager {
             print("NotificationManager: Skipping past alarm at \(date)")
             return
         }
-        
+
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
-        content.sound = isCritical ? .defaultCritical : .default
+        content.sound = SoundManager.shared.notificationSound(for: selectedSoundIdentifier, isCritical: isCritical)
         content.interruptionLevel = isCritical ? .critical : .timeSensitive
-        
+
         let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
-        
+
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
-        
+
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
                 print("NotificationManager: Failed to schedule '\(identifier)' - \(error.localizedDescription)")

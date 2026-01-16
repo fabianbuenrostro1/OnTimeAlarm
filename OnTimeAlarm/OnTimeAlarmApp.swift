@@ -11,7 +11,7 @@ struct OnTimeAlarmApp: App {
     
     var body: some Scene {
         WindowGroup {
-            AlarmListView()
+            MainTabView()
                 .environment(locationManager)
                 .onAppear {
                     locationManager.requestPermission()
