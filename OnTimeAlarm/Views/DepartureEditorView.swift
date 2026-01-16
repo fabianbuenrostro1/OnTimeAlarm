@@ -120,7 +120,7 @@ struct DepartureEditorView: View {
                                 .padding(.horizontal, 4)
                             
                             VStack(spacing: 4) {
-                                Image(systemName: "car.fill")
+                                Image(systemName: selectedTransportMode.icon)
                                     .foregroundStyle(.orange)
                                 Text(timeFormatter.string(from: calculatedDepartureTime))
                                     .font(.caption)
@@ -156,6 +156,18 @@ struct DepartureEditorView: View {
                 
                 // Section 3: Where are you going?
                 Section {
+                    // Transport Mode - Always visible at top
+                    Picker("I'm", selection: $selectedTransportMode) {
+                        ForEach(TravelTimeService.TransportMode.allCases, id: \.self) { mode in
+                            Label(mode.rawValue, systemImage: mode.icon)
+                                .tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: selectedTransportMode) { _, _ in
+                        calculateLiveTravelTime()
+                    }
+
                     // Origin
                     HStack {
                         Image(systemName: "location.fill")
@@ -263,19 +275,8 @@ struct DepartureEditorView: View {
                         }
                     }
                     
-                    // Transport + Travel Time (show when both locations set)
+                    // Travel Time (show when both locations set)
                     if originCoordinate != nil && destinationCoordinate != nil {
-                        Picker("Transport", selection: $selectedTransportMode) {
-                            ForEach(TravelTimeService.TransportMode.allCases, id: \.self) { mode in
-                                Label(mode.rawValue, systemImage: mode.icon)
-                                    .tag(mode)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .onChange(of: selectedTransportMode) { _, _ in
-                            calculateLiveTravelTime()
-                        }
-                        
                         HStack {
                             Text("Travel Time")
                             Spacer()

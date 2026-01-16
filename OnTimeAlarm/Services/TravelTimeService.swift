@@ -4,9 +4,9 @@ import MapKit
 struct TravelTimeService {
     
     enum TransportMode: String, CaseIterable {
-        case automobile = "Driving"
-        case cycling = "Biking"
-        case walking = "Walking"
+        case automobile = "Drive"
+        case cycling = "Bike"
+        case walking = "Walk"
         
         var mapKitType: MKDirectionsTransportType {
             switch self {

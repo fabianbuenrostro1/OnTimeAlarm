@@ -120,10 +120,7 @@ struct DepartureWizardView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     madLibsSection
-                    
-                    Divider()
-                        .padding(.horizontal, 20)
-                    
+
                     alarmSentenceSection
                     
                     Spacer(minLength: 100)
@@ -199,10 +196,45 @@ struct DepartureWizardView: View {
     @ViewBuilder
     private var madLibsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("I need to get from")
+            Text("I need to")
                 .font(.title3)
                 .foregroundStyle(.secondary)
-            
+
+            // Transport mode picker - chip style
+            HStack(spacing: 12) {
+                Image(systemName: transportMode.icon)
+                    .font(.title2)
+                    .foregroundStyle(.blue)
+                    .frame(width: 32)
+
+                HStack(spacing: 0) {
+                    ForEach(TravelTimeService.TransportMode.allCases, id: \.self) { mode in
+                        Button {
+                            withAnimation(.snappy) { transportMode = mode }
+                        } label: {
+                            Text(mode.rawValue)
+                                .font(.subheadline.weight(transportMode == mode ? .semibold : .regular))
+                                .foregroundStyle(transportMode == mode ? .white : .primary)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 16)
+                                .background(transportMode == mode ? Color.blue : Color.clear)
+                                .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                Spacer()
+            }
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+
+            Text("from")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+
             chipButton(
                 icon: isUsingCurrentLocation ? "location.fill" : "mappin.circle.fill",
                 iconColor: .blue,
@@ -654,7 +686,12 @@ struct DepartureWizardView: View {
         preWakeAlarms = departure.preWakeAlarms
         postWakeAlarms = departure.postWakeAlarms
         barrageInterval = departure.barrageInterval
-        
+
+        // Load transport mode
+        if let mode = TravelTimeService.TransportMode.allCases.first(where: { $0.rawValue == departure.transportType }) {
+            transportMode = mode
+        }
+
         if let destName = departure.destinationName {
             toName = destName
             toAddress = departure.destinationAddress
@@ -754,7 +791,8 @@ struct DepartureWizardView: View {
         dep.preWakeAlarms = preWakeAlarms
         dep.postWakeAlarms = postWakeAlarms
         dep.barrageInterval = barrageInterval
-        
+        dep.transportType = transportMode.rawValue
+
         dismiss()
     }
 }
