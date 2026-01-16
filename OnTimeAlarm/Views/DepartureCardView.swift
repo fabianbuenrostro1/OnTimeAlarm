@@ -90,7 +90,7 @@ struct DepartureCardView: View {
                 .frame(height: 220) // Taller hero map
                 .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 24))
                 
-                // Traffic Badge Overlay
+                // Traffic Badge Overlay (Top Left)
                 HStack(spacing: 4) {
                     Image(systemName: trafficStatus.icon)
                     Text(trafficStatus.label)
@@ -102,6 +102,7 @@ struct DepartureCardView: View {
                 .padding(.vertical, 6)
                 .background(.regularMaterial, in: Capsule())
                 .padding(12)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 
                 // Debug / Info Button (Top Right)
                 Button(action: { showingDebugInfo = true }) {

@@ -71,22 +71,40 @@ struct TimelineFlowView: View {
         f.dateFormat = "a"
         return f
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            
+
             // --- Pre-Wake Alarms (if barrage enabled) ---
-            if isBarrageEnabled {
-                ForEach((1...preWakeAlarms).reversed(), id: \.self) { i in
-                    let time = wakeTime.addingTimeInterval(-Double(i) * barrageInterval)
-                    timelineRow(
-                        time: time,
-                        isMajor: false,
-                        isLast: false,
-                        showTopLine: i != preWakeAlarms, // No top line for first item
-                        showBottomLine: true,
-                        content: { EmptyView() },
-                        nodeColor: .blue.opacity(0.5)
+            if isBarrageEnabled && preWakeAlarms > 0 {
+                // Show only the first/earliest alarm
+                let firstAlarmTime = wakeTime.addingTimeInterval(-Double(preWakeAlarms) * barrageInterval)
+                timelineRow(
+                    time: firstAlarmTime,
+                    isMajor: false,
+                    isLast: false,
+                    showTopLine: false,
+                    showBottomLine: true,
+                    content: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "alarm.fill")
+                                .font(.caption2)
+                                .foregroundStyle(.blue.opacity(0.6))
+                            Text("Alarm 1")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    },
+                    nodeColor: .blue.opacity(0.5)
+                )
+
+                // Show "+N more" if there are additional pre-wake alarms
+                if preWakeAlarms > 1 {
+                    condensedAlarmRow(
+                        count: preWakeAlarms - 1,
+                        color: .blue.opacity(0.5),
+                        showTopLine: true,
+                        showBottomLine: true
                     )
                 }
             }
@@ -126,19 +144,14 @@ struct TimelineFlowView: View {
             )
             
             // --- Post-Wake Alarms (if barrage enabled) ---
-            if isBarrageEnabled {
-                ForEach(1...postWakeAlarms, id: \.self) { i in
-                    let time = wakeTime.addingTimeInterval(Double(i) * barrageInterval)
-                    timelineRow(
-                        time: time,
-                        isMajor: false,
-                        isLast: false,
-                        showTopLine: true,
-                        showBottomLine: true,
-                        content: { EmptyView() },
-                        nodeColor: .red.opacity(0.5)
-                    )
-                }
+            if isBarrageEnabled && postWakeAlarms > 0 {
+                // Show only the summary - no individual alarms
+                condensedAlarmRow(
+                    count: postWakeAlarms,
+                    color: .red.opacity(0.5),
+                    showTopLine: true,
+                    showBottomLine: true
+                )
             }
             
             // --- Leave Row (Major) ---
@@ -296,6 +309,57 @@ struct TimelineFlowView: View {
             Spacer()
         }
         .padding(.vertical, isMajor ? 8 : 4)
+    }
+
+    @ViewBuilder
+    private func condensedAlarmRow(
+        count: Int,
+        color: Color,
+        showTopLine: Bool,
+        showBottomLine: Bool
+    ) -> some View {
+        HStack(alignment: .center, spacing: 16) {
+            // Left: Empty (no time for condensed row)
+            Spacer()
+                .frame(width: 100)
+
+            // Center: Dotted line indicator
+            ZStack(alignment: .center) {
+                // Connecting lines
+                VStack(spacing: 2) {
+                    if showTopLine {
+                        Rectangle()
+                            .fill(Color(.systemGray5))
+                            .frame(width: 2, height: 8)
+                    }
+                    // Dots to indicate "more"
+                    ForEach(0..<3, id: \.self) { _ in
+                        Circle()
+                            .fill(color)
+                            .frame(width: 4, height: 4)
+                    }
+                    if showBottomLine {
+                        Rectangle()
+                            .fill(Color(.systemGray5))
+                            .frame(width: 2, height: 8)
+                    }
+                }
+            }
+            .frame(width: 20)
+
+            // Right: Summary text
+            HStack(spacing: 4) {
+                Image(systemName: "ellipsis")
+                    .font(.caption2)
+                    .foregroundStyle(color)
+                Text("+\(count) more alarm\(count == 1 ? "" : "s")")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+        }
+        .padding(.vertical, 2)
     }
 }
 
