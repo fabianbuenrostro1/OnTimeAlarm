@@ -1,6 +1,38 @@
 import SwiftUI
 import MapKit
 
+// MARK: - Traffic Status
+enum TrafficStatus {
+    case clear, moderate, heavy, unknown
+
+    var color: Color {
+        switch self {
+        case .clear: return .green
+        case .moderate: return .orange
+        case .heavy: return .red
+        case .unknown: return .secondary
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .clear: return "checkmark.circle.fill"
+        case .moderate: return "exclamationmark.circle.fill"
+        case .heavy: return "exclamationmark.triangle.fill"
+        case .unknown: return "questionmark.circle"
+        }
+    }
+
+    var shortLabel: String {
+        switch self {
+        case .clear: return "Clear"
+        case .moderate: return "Moderate"
+        case .heavy: return "Heavy"
+        case .unknown: return ""
+        }
+    }
+}
+
 // MARK: - Header (Optional for Map-First, but kept for context if needed)
 struct TimelineHeaderView: View {
     let targetTime: Date
@@ -54,11 +86,14 @@ struct TimelineFlowView: View {
     let isHeavyTraffic: Bool
     let alarmCount: Int
     let isBarrageEnabled: Bool
-    
+
     // Data for Visualization
     let preWakeAlarms: Int
     let postWakeAlarms: Int
     let barrageInterval: TimeInterval
+
+    // Traffic status for inline display
+    let trafficStatus: TrafficStatus
     
     private var timeFormatter: DateFormatter {
         let f = DateFormatter()
@@ -187,14 +222,26 @@ struct TimelineFlowView: View {
                             .font(.caption2)
                             .fontWeight(.bold)
                             .foregroundStyle(.secondary)
-                        
+
                         HStack(spacing: 4) {
                             Image(systemName: "car.fill")
                                 .font(.caption2)
                             Text(TimeCalculator.formatDuration(travelTime))
                                 .font(.caption)
+
+                            if trafficStatus != .unknown {
+                                Text("·")
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                                Image(systemName: trafficStatus.icon)
+                                    .font(.caption2)
+                                    .foregroundStyle(trafficStatus.color)
+                                Text(trafficStatus.shortLabel)
+                                    .font(.caption)
+                                    .foregroundStyle(trafficStatus.color)
+                            }
                         }
-                        .foregroundStyle(isHeavyTraffic ? .red : .secondary)
+                        .foregroundStyle(trafficStatus == .heavy ? .red : .secondary)
                     }
                 },
                 nodeColor: .green

@@ -11,37 +11,6 @@ struct DepartureDetailView: View {
     @State private var currentTravelTime: TimeInterval?
     @State private var trafficStatus: TrafficStatus = .unknown
 
-    enum TrafficStatus {
-        case clear, moderate, heavy, unknown
-
-        var color: Color {
-            switch self {
-            case .clear: return .green
-            case .moderate: return .yellow
-            case .heavy: return .red
-            case .unknown: return .secondary
-            }
-        }
-
-        var icon: String {
-            switch self {
-            case .clear: return "checkmark.circle.fill"
-            case .moderate: return "exclamationmark.circle.fill"
-            case .heavy: return "exclamationmark.triangle.fill"
-            case .unknown: return "questionmark.circle"
-            }
-        }
-
-        var label: String {
-            switch self {
-            case .clear: return "Traffic Clear"
-            case .moderate: return "Moderate Traffic"
-            case .heavy: return "Heavy Traffic"
-            case .unknown: return "Checking..."
-            }
-        }
-    }
-
     // MARK: - Computed Properties
 
     private var transportModeType: MKDirectionsTransportType {
@@ -99,30 +68,14 @@ struct DepartureDetailView: View {
             ZStack(alignment: .top) {
                 // Layer 1: Full-bleed map background
                 VStack(spacing: 0) {
-                    ZStack(alignment: .topLeading) {
-                        MapPreviewView(
-                            originCoordinate: originCoordinate,
-                            destinationCoordinate: destinationCoordinate,
-                            transportType: transportModeType,
-                            onTap: openInMaps,
-                            showOpenMapsHint: false
-                        )
-                        .frame(height: geometry.size.height * 0.42)
-
-                        // Traffic Badge Overlay
-                        HStack(spacing: 4) {
-                            Image(systemName: trafficStatus.icon)
-                            Text(trafficStatus.label)
-                                .font(.caption)
-                                .fontWeight(.bold)
-                        }
-                        .foregroundStyle(trafficStatus.color)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(.regularMaterial, in: Capsule())
-                        .padding(.top, geometry.safeAreaInsets.top + 50)
-                        .padding(.leading, 12)
-                    }
+                    MapPreviewView(
+                        originCoordinate: originCoordinate,
+                        destinationCoordinate: destinationCoordinate,
+                        transportType: transportModeType,
+                        onTap: openInMaps,
+                        showOpenMapsHint: false
+                    )
+                    .frame(height: geometry.size.height * 0.50)
 
                     Spacer()
                 }
@@ -133,7 +86,7 @@ struct DepartureDetailView: View {
                     VStack(spacing: 0) {
                         // Spacer to push card below map
                         Color.clear
-                            .frame(height: geometry.size.height * 0.35)
+                            .frame(height: geometry.size.height * 0.28)
 
                         // Floating Card
                         VStack(spacing: 0) {
@@ -145,7 +98,7 @@ struct DepartureDetailView: View {
                                 .padding(.bottom, 12)
 
                             // Card Content
-                            VStack(spacing: 16) {
+                            VStack(spacing: 12) {
                                 // Card Header: Title + Toggle
                                 HStack(alignment: .center) {
                                     VStack(alignment: .leading, spacing: 4) {
@@ -197,7 +150,8 @@ struct DepartureDetailView: View {
                                         isBarrageEnabled: departure.isBarrageEnabled,
                                         preWakeAlarms: departure.preWakeAlarms,
                                         postWakeAlarms: departure.postWakeAlarms,
-                                        barrageInterval: departure.barrageInterval
+                                        barrageInterval: departure.barrageInterval,
+                                        trafficStatus: trafficStatus
                                     )
                                 }
 
@@ -238,10 +192,7 @@ struct DepartureDetailView: View {
                 Button {
                     showingEditor = true
                 } label: {
-                    Image(systemName: "pencil.circle.fill")
-                        .font(.title3)
-                        .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(.white)
+                    Image(systemName: "pencil")
                 }
             }
         }
