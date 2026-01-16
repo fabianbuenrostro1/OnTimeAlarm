@@ -137,6 +137,14 @@ struct DepartureCardView: View {
                     preWakeAlarms: departure.preWakeAlarms,
                     postWakeAlarms: departure.postWakeAlarms
                 )
+                
+                // Explicit Alarm Times List (when barrage enabled)
+                if departure.isBarrageEnabled && departure.scheduledAlarmTimes.count > 1 {
+                    AlarmTimesListView(
+                        alarmTimes: departure.scheduledAlarmTimes,
+                        wakeUpTime: departure.wakeUpTime
+                    )
+                }
             }
             .padding(16)
             

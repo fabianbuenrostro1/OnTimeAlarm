@@ -66,6 +66,32 @@ final class Departure {
         return preWakeAlarms + 1 + postWakeAlarms // pre + main + post
     }
     
+    /// All scheduled alarm times (sorted)
+    var scheduledAlarmTimes: [Date] {
+        var times: [Date] = []
+        let wake = wakeUpTime
+        
+        if isBarrageEnabled {
+            // Pre-wake alarms (before wake up)
+            for i in (1...preWakeAlarms).reversed() {
+                times.append(wake.addingTimeInterval(-Double(i) * barrageInterval))
+            }
+            
+            // Main wake up alarm
+            times.append(wake)
+            
+            // Post-wake alarms (after wake up)
+            for i in 1...postWakeAlarms {
+                times.append(wake.addingTimeInterval(Double(i) * barrageInterval))
+            }
+        } else {
+            // Single alarm at wake time
+            times.append(wake)
+        }
+        
+        return times
+    }
+    
     // MARK: - Initialization
     
     init(

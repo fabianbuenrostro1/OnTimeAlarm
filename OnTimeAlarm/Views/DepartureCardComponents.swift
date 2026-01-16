@@ -417,3 +417,99 @@ struct CompactLocationFooterView: View {
         }
     }
 }
+
+// MARK: - Explicit Alarm Times List
+struct AlarmTimesListView: View {
+    let alarmTimes: [Date]
+    let wakeUpTime: Date
+    
+    private var timeFormatter: DateFormatter {
+        let f = DateFormatter()
+        f.dateFormat = "h:mm a"
+        return f
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Header
+            HStack {
+                Image(systemName: "bell.badge.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                Text("Alarms (\(alarmTimes.count))")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            
+            // Times Flow
+            FlowLayout(spacing: 6) {
+                ForEach(alarmTimes, id: \.self) { time in
+                    let isWake = Calendar.current.isDate(time, equalTo: wakeUpTime, toGranularity: .minute)
+                    
+                    Text(timeFormatter.string(from: time))
+                        .font(.caption2.monospacedDigit())
+                        .fontWeight(isWake ? .bold : .regular)
+                        .foregroundStyle(isWake ? .orange : .secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(isWake ? Color.orange.opacity(0.15) : Color(.systemGray6))
+                        )
+                        .overlay(
+                            Capsule()
+                                .stroke(isWake ? Color.orange.opacity(0.5) : Color.clear, lineWidth: 1)
+                        )
+                }
+            }
+        }
+        .padding(12)
+        .background(Color(.systemGray6).opacity(0.5))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+// MARK: - Flow Layout (Horizontal Wrap)
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+    
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = arrangeSubviews(proposal: proposal, subviews: subviews)
+        return result.size
+    }
+    
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = arrangeSubviews(proposal: proposal, subviews: subviews)
+        for (index, subview) in subviews.enumerated() {
+            subview.place(at: CGPoint(x: bounds.minX + result.positions[index].x,
+                                      y: bounds.minY + result.positions[index].y),
+                          proposal: .unspecified)
+        }
+    }
+    
+    private func arrangeSubviews(proposal: ProposedViewSize, subviews: Subviews) -> (size: CGSize, positions: [CGPoint]) {
+        let maxWidth = proposal.width ?? .infinity
+        var positions: [CGPoint] = []
+        var currentX: CGFloat = 0
+        var currentY: CGFloat = 0
+        var lineHeight: CGFloat = 0
+        
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            
+            if currentX + size.width > maxWidth && currentX > 0 {
+                currentX = 0
+                currentY += lineHeight + spacing
+                lineHeight = 0
+            }
+            
+            positions.append(CGPoint(x: currentX, y: currentY))
+            currentX += size.width + spacing
+            lineHeight = max(lineHeight, size.height)
+        }
+        
+        return (CGSize(width: maxWidth, height: currentY + lineHeight), positions)
+    }
+}
