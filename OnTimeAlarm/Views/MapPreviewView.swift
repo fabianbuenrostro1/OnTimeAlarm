@@ -29,12 +29,18 @@ struct MapPreviewView: View {
                     }
                 }
                 
-                // Destination marker
+                // Destination marker with white backing
                 if let destination = destinationCoordinate {
                     Annotation("", coordinate: destination) {
-                        Image(systemName: "mappin.circle.fill")
-                            .font(.title)
-                            .foregroundStyle(.red)
+                        ZStack {
+                            Circle()
+                                .fill(.white)
+                                .frame(width: 32, height: 32)
+                                .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+                            Image(systemName: "mappin.circle.fill")
+                                .font(.title)
+                                .foregroundStyle(.red)
+                        }
                     }
                 }
                 
@@ -69,19 +75,19 @@ struct MapPreviewView: View {
                 .background(Color(.systemGray6))
             }
             
-            // Tap hint overlay
+            // Tap hint overlay (bottom-right)
             VStack {
                 Spacer()
                 HStack {
                     Spacer()
-                    Label("Tap to open Maps", systemImage: "arrow.up.forward.app")
-                        .font(.caption)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
+                    Label("Open Maps", systemImage: "arrow.up.forward.app")
+                        .font(.caption2)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
                         .background(.ultraThinMaterial, in: Capsule())
-                    Spacer()
                 }
-                .padding(.bottom, 8)
+                .padding(.trailing, 10)
+                .padding(.bottom, 10)
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 16))

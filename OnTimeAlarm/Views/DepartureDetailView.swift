@@ -46,9 +46,27 @@ struct DepartureDetailView: View {
 
     private var transportModeType: MKDirectionsTransportType {
         switch departure.transportType {
-        case "automobile": return .automobile
-        case "walking": return .walking
+        case "automobile", "Drive": return .automobile
+        case "walking", "Walk": return .walking
         default: return .automobile
+        }
+    }
+
+    private var transportModeIcon: String {
+        switch departure.transportType {
+        case "automobile", "Drive": return "car.fill"
+        case "cycling", "Bike": return "bicycle"
+        case "walking", "Walk": return "figure.walk"
+        default: return "car.fill"
+        }
+    }
+
+    private var transportModeLabel: String {
+        switch departure.transportType {
+        case "automobile", "Drive": return "Drive"
+        case "cycling", "Bike": return "Bike"
+        case "walking", "Walk": return "Walk"
+        default: return "Drive"
         }
     }
 
@@ -79,7 +97,38 @@ struct DepartureDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // 1. Map Hero (Full Width)
+                // 1. Custom Header Section
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(departure.label)
+                            .font(.title2)
+                            .fontWeight(.bold)
+
+                        HStack(spacing: 4) {
+                            Image(systemName: transportModeIcon)
+                                .font(.caption)
+                            Text(transportModeLabel)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    Button {
+                        showingEditor = true
+                    } label: {
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                            .symbolRenderingMode(.hierarchical)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+
+                // 2. Map Hero (Full Width)
                 ZStack(alignment: .topLeading) {
                     MapPreviewView(
                         originCoordinate: originCoordinate,
@@ -103,30 +152,36 @@ struct DepartureDetailView: View {
                     .padding(12)
                 }
 
-                // 2. Content Section
-                VStack(spacing: 12) {
-                    // Location Bar
-                    CompactLocationFooterView(
-                        originName: originDisplayName,
-                        destinationName: destinationDisplayName
-                    )
+                // 3. Content Section with Headers
+                VStack(spacing: 16) {
+                    // Route Section
+                    VStack(alignment: .leading, spacing: 8) {
+                        sectionHeader("Route")
+                        CompactLocationFooterView(
+                            originName: originDisplayName,
+                            destinationName: destinationDisplayName
+                        )
+                    }
 
                     Divider()
 
-                    // 3. Timeline Flow
-                    TimelineFlowView(
-                        wakeTime: departure.wakeUpTime,
-                        prepDuration: departure.prepDuration,
-                        leaveTime: departure.departureTime,
-                        travelTime: departure.effectiveTravelTime,
-                        arrivalTime: departure.targetArrivalTime,
-                        isHeavyTraffic: trafficStatus == .heavy,
-                        alarmCount: departure.totalBarrageAlarms > 0 ? departure.totalBarrageAlarms : 1,
-                        isBarrageEnabled: departure.isBarrageEnabled,
-                        preWakeAlarms: departure.preWakeAlarms,
-                        postWakeAlarms: departure.postWakeAlarms,
-                        barrageInterval: departure.barrageInterval
-                    )
+                    // Schedule Section
+                    VStack(alignment: .leading, spacing: 8) {
+                        sectionHeader("Schedule")
+                        TimelineFlowView(
+                            wakeTime: departure.wakeUpTime,
+                            prepDuration: departure.prepDuration,
+                            leaveTime: departure.departureTime,
+                            travelTime: departure.effectiveTravelTime,
+                            arrivalTime: departure.targetArrivalTime,
+                            isHeavyTraffic: trafficStatus == .heavy,
+                            alarmCount: departure.totalBarrageAlarms > 0 ? departure.totalBarrageAlarms : 1,
+                            isBarrageEnabled: departure.isBarrageEnabled,
+                            preWakeAlarms: departure.preWakeAlarms,
+                            postWakeAlarms: departure.postWakeAlarms,
+                            barrageInterval: departure.barrageInterval
+                        )
+                    }
                 }
                 .padding(16)
                 .background(Color(.systemBackground))
@@ -148,15 +203,7 @@ struct DepartureDetailView: View {
             }
         }
         .background(Color(.systemGroupedBackground))
-        .navigationTitle(departure.label)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Edit") {
-                    showingEditor = true
-                }
-            }
-        }
         .sheet(isPresented: $showingEditor) {
             DepartureWizardView(departure: departure)
         }
@@ -170,6 +217,16 @@ struct DepartureDetailView: View {
                 NotificationManager.shared.cancelNotifications(for: departure)
             }
         }
+    }
+
+    // MARK: - Helper Views
+
+    @ViewBuilder
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(.caption)
+            .fontWeight(.semibold)
+            .foregroundStyle(.secondary)
     }
 
     // MARK: - Actions
