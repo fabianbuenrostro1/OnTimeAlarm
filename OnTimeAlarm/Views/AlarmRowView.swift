@@ -22,21 +22,24 @@ struct AlarmRowView: View {
                     .font(.system(size: 48, weight: .light))
                     .foregroundStyle(departure.isEnabled ? .primary : .secondary)
 
+                // Line 1.5: Destination name subtitle - "Robin" to the time's "Batman"
+                if let destinationName = departure.destinationName, !destinationName.isEmpty {
+                    Text(destinationName)
+                        .font(.title3)
+                        .fontWeight(.light)
+                        .foregroundStyle(departure.isEnabled ? .primary : .secondary)
+                }
+
                 // Line 2: The math - Wake time + breakdown
                 Text("Wake \(departure.wakeUpTime.formatted(.dateTime.hour().minute())) · \(TimeCalculator.formatDuration(departure.prepDuration)) prep · \(TimeCalculator.formatDuration(departure.effectiveTravelTime)) \(transportVerb)")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
-                // Line 3: Label/Title
-                Text(departure.label)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                // Line 4: Address (if present)
+                // Line 3: Address (if present)
                 if let address = departure.destinationAddress, !address.isEmpty {
                     Text(address)
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(.secondary)
                 }
             }
 
