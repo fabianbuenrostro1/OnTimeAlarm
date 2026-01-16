@@ -58,6 +58,7 @@ struct TimelineFlowView: View {
     // Data for Visualization
     let preWakeAlarms: Int
     let postWakeAlarms: Int
+    let barrageInterval: TimeInterval
     
     private var timeFormatter: DateFormatter {
         let f = DateFormatter()
@@ -73,12 +74,30 @@ struct TimelineFlowView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // 1. Wake Up Row
+            
+            // --- Pre-Wake Alarms (if barrage enabled) ---
+            if isBarrageEnabled {
+                ForEach((1...preWakeAlarms).reversed(), id: \.self) { i in
+                    let time = wakeTime.addingTimeInterval(-Double(i) * barrageInterval)
+                    timelineRow(
+                        time: time,
+                        isMajor: false,
+                        isLast: false,
+                        showTopLine: i != preWakeAlarms, // No top line for first item
+                        showBottomLine: true,
+                        content: { EmptyView() },
+                        nodeColor: .blue.opacity(0.5)
+                    )
+                }
+            }
+            
+            // --- Wake Up Row (Centerpiece) ---
             timelineRow(
                 time: wakeTime,
                 isMajor: false,
                 isLast: false,
-                showBottomLine: false, // No line, we'll draw alarm segment instead
+                showTopLine: isBarrageEnabled && preWakeAlarms > 0, // Connects to pre-wake if existing
+                showBottomLine: true,
                 customNode: {
                     ZStack {
                         Circle()
@@ -106,28 +125,28 @@ struct TimelineFlowView: View {
                 }
             )
             
-            // 2. Alarm Visualization Segment (On the Line)
-            if isBarrageEnabled && (preWakeAlarms > 0 || postWakeAlarms > 0) {
-                alarmSegmentRow(preWake: preWakeAlarms, postWake: postWakeAlarms)
-            } else {
-                // Simple connecting line segment when no barrage
-                HStack(alignment: .center, spacing: 16) {
-                    Spacer()
-                        .frame(width: 100)
-                    Rectangle()
-                        .fill(Color(.systemGray5))
-                        .frame(width: 2, height: 16)
-                        .frame(width: 20)
-                    Spacer()
+            // --- Post-Wake Alarms (if barrage enabled) ---
+            if isBarrageEnabled {
+                ForEach(1...postWakeAlarms, id: \.self) { i in
+                    let time = wakeTime.addingTimeInterval(Double(i) * barrageInterval)
+                    timelineRow(
+                        time: time,
+                        isMajor: false,
+                        isLast: false,
+                        showTopLine: true,
+                        showBottomLine: true,
+                        content: { EmptyView() },
+                        nodeColor: .red.opacity(0.5)
+                    )
                 }
             }
             
-            // 3. Leave Row (Major)
+            // --- Leave Row (Major) ---
             timelineRow(
                 time: leaveTime,
                 isMajor: true,
                 isLast: false,
-                showTopLine: false, // Connected by alarm segment above
+                showTopLine: true, // Always connected to logic above
                 content: {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("LEAVE HOME")
@@ -144,7 +163,7 @@ struct TimelineFlowView: View {
                 nodeColor: .blue
             )
             
-            // 4. Arrive Row
+            // --- Arrive Row ---
             timelineRow(
                 time: arrivalTime,
                 isMajor: false,
