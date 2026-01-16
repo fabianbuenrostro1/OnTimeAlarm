@@ -78,6 +78,7 @@ struct TimelineFlowView: View {
                 time: wakeTime,
                 isMajor: false,
                 isLast: false,
+                showBottomLine: false, // No line, we'll draw alarm segment instead
                 customNode: {
                     ZStack {
                         Circle()
@@ -93,35 +94,40 @@ struct TimelineFlowView: View {
                     }
                 },
                 content: {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text("WAKE UP")
                             .font(.caption2)
                             .fontWeight(.bold)
                             .foregroundStyle(.secondary)
-                        
-                        HStack(spacing: 6) {
-                            Text(TimeCalculator.formatDuration(prepDuration) + " prep")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            
-                            if isBarrageEnabled {
-                                Text("•")
-                                    .font(.caption2)
-                                    .foregroundStyle(.tertiary)
-                                
-                                // Visualizer embedded in timeline
-                                BarrageVisualizer(preWakeAlarms: preWakeAlarms, postWakeAlarms: postWakeAlarms)
-                            }
-                        }
+                        Text(TimeCalculator.formatDuration(prepDuration) + " prep")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
             )
             
-            // 2. Leave Row (Major)
+            // 2. Alarm Visualization Segment (On the Line)
+            if isBarrageEnabled && (preWakeAlarms > 0 || postWakeAlarms > 0) {
+                alarmSegmentRow(preWake: preWakeAlarms, postWake: postWakeAlarms)
+            } else {
+                // Simple connecting line segment when no barrage
+                HStack(alignment: .center, spacing: 16) {
+                    Spacer()
+                        .frame(width: 100)
+                    Rectangle()
+                        .fill(Color(.systemGray5))
+                        .frame(width: 2, height: 16)
+                        .frame(width: 20)
+                    Spacer()
+                }
+            }
+            
+            // 3. Leave Row (Major)
             timelineRow(
                 time: leaveTime,
                 isMajor: true,
                 isLast: false,
+                showTopLine: false, // Connected by alarm segment above
                 content: {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("LEAVE HOME")
@@ -138,7 +144,7 @@ struct TimelineFlowView: View {
                 nodeColor: .blue
             )
             
-            // 3. Arrive Row
+            // 4. Arrive Row
             timelineRow(
                 time: arrivalTime,
                 isMajor: false,
@@ -165,11 +171,50 @@ struct TimelineFlowView: View {
         .padding(.vertical, 8)
     }
     
+    // MARK: - Alarm Segment Row (Vertical Dots on Line)
+    @ViewBuilder
+    private func alarmSegmentRow(preWake: Int, postWake: Int) -> some View {
+        HStack(alignment: .center, spacing: 16) {
+            // Left: Empty space (same width as time column)
+            Spacer()
+                .frame(width: 100)
+            
+            // Center: Vertical Dot Sequence
+            VStack(spacing: 4) {
+                // Pre-wake dots (top, fading in)
+                ForEach(0..<min(preWake, 3), id: \.self) { i in
+                    Circle()
+                        .fill(Color.blue.opacity(0.3 + Double(i) * 0.2))
+                        .frame(width: 6, height: 6)
+                }
+                
+                // Post-wake dots (bottom, fading out)
+                ForEach(0..<min(postWake, 3), id: \.self) { i in
+                    Circle()
+                        .fill(Color.red.opacity(0.6 - Double(i) * 0.15))
+                        .frame(width: 6, height: 6)
+                }
+                
+                // Hint for more
+                if postWake > 3 {
+                    Text("+\(postWake - 3)")
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 20)
+            
+            Spacer()
+        }
+    }
+    
     @ViewBuilder
     private func timelineRow<Content: View, Node: View>(
         time: Date,
         isMajor: Bool,
         isLast: Bool,
+        showTopLine: Bool = true,
+        showBottomLine: Bool = true,
         @ViewBuilder customNode: @escaping () -> Node = { EmptyView() },
         @ViewBuilder content: () -> Content,
         nodeColor: Color = .gray.opacity(0.5)
@@ -195,8 +240,8 @@ struct TimelineFlowView: View {
             
             // Center: Timeline Gutter
             ZStack(alignment: .center) { 
-                // Vertical Line
-                if !isLast {
+                // Bottom Vertical Line
+                if !isLast && showBottomLine {
                     Rectangle()
                         .fill(Color(.systemGray5))
                         .frame(width: 2)
@@ -205,7 +250,7 @@ struct TimelineFlowView: View {
                 }
                 
                 // Top Line
-                if !isMajor && time != wakeTime {
+                if showTopLine && time != wakeTime {
                      Rectangle()
                         .fill(Color(.systemGray5))
                         .frame(width: 2)
