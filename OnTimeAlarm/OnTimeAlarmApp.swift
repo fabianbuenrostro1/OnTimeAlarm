@@ -21,6 +21,6 @@ struct OnTimeAlarmApp: App {
                     }
                 }
         }
-        .modelContainer(for: [Departure.self, Preferences.self, SavedPlace.self])
+        .modelContainer(for: [Departure.self, Preferences.self])
     }
 }

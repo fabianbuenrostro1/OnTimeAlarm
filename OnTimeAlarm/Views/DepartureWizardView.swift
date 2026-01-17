@@ -3,18 +3,11 @@ import SwiftData
 import MapKit
 import CoreLocation
 
-enum WizardSearchType {
-    case origin
-    case destination
-}
-
 struct DepartureWizardView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(LocationManager.self) private var locationManager
-    
-    @Query private var savedPlaces: [SavedPlace]
-    
+
     let departure: Departure?
     
     init(departure: Departure? = nil) {
@@ -25,11 +18,10 @@ struct DepartureWizardView: View {
     @State private var label: String = ""
     
     // Locations
-    @State private var fromName: String = "Starting Location"
+    @State private var fromName: String = ""
     @State private var fromAddress: String?
     @State private var fromCoordinate: CLLocationCoordinate2D?
-    @State private var isUsingCurrentLocation: Bool = true
-    
+
     @State private var toName: String?
     @State private var toAddress: String?
     @State private var toCoordinate: CLLocationCoordinate2D?
@@ -59,12 +51,9 @@ struct DepartureWizardView: View {
     @State private var repeatDays: Set<Int> = []
     
     // Sheets
-    @State private var showingLocationSelection: Bool = false
-    @State private var showingLocationSearch: Bool = false
     @State private var showingAlarmSettings: Bool = false
     @State private var showingRepeatSelection: Bool = false
     @State private var showingPrepSelection: Bool = false
-    @State private var activeSearchType: WizardSearchType = .destination
     
     private var isEditing: Bool { departure != nil }
     
@@ -85,7 +74,7 @@ struct DepartureWizardView: View {
     }
     
     private var canSave: Bool {
-        toCoordinate != nil && (fromCoordinate != nil || isUsingCurrentLocation)
+        toCoordinate != nil && fromCoordinate != nil
     }
     
     private var timeFormatter: DateFormatter {
@@ -135,28 +124,6 @@ struct DepartureWizardView: View {
                     .disabled(!canSave)
                 }
             }
-            .sheet(isPresented: $showingLocationSelection) {
-                locationSelectionSheet
-            }
-            .sheet(isPresented: $showingLocationSearch) {
-                LocationSearchSheet { coordinate, name, address in
-                    switch activeSearchType {
-                    case .origin:
-                        isUsingCurrentLocation = false
-                        fromName = name
-                        fromAddress = address
-                        fromCoordinate = coordinate
-                    case .destination:
-                        toName = name
-                        toAddress = address
-                        toCoordinate = coordinate
-                        if label.isEmpty {
-                            label = name
-                        }
-                    }
-                    calculateTravelTime()
-                }
-            }
             .sheet(isPresented: $showingAlarmSettings) {
                 AlarmSettingsSheet(hasPreWakeAlarm: $hasPreWakeAlarm)
             }
@@ -168,10 +135,10 @@ struct DepartureWizardView: View {
                 prepSettingsSheet
                 .presentationDetents([.fraction(0.5)])
             }
-            .onChange(of: toName) { _, _ in
+            .onChange(of: fromCoordinate?.latitude) { _, _ in
                 calculateTravelTime()
             }
-            .onChange(of: fromName) { _, _ in
+            .onChange(of: toCoordinate?.latitude) { _, _ in
                 calculateTravelTime()
             }
             .onChange(of: transportMode) { _, _ in
@@ -179,7 +146,6 @@ struct DepartureWizardView: View {
             }
             .onAppear {
                 loadExistingDeparture()
-                setupCurrentLocation()
             }
         }
     }
@@ -227,33 +193,38 @@ struct DepartureWizardView: View {
                 .font(.title3)
                 .foregroundStyle(.secondary)
 
-            chipButton(
-                icon: isUsingCurrentLocation ? "location.fill" : "mappin.circle.fill",
+            InlineLocationField(
+                coordinate: $fromCoordinate,
+                locationName: $fromName,
+                locationAddress: $fromAddress,
+                placeholder: "Starting location",
+                icon: "location.fill",
                 iconColor: .blue,
-                title: isUsingCurrentLocation ? "Starting Location" : fromName,
-                subtitle: fromAddress,
-                isPlaceholder: isUsingCurrentLocation,
-                action: {
-                    activeSearchType = .origin
-                    showingLocationSelection = true
-                }
+                showUseMyLocation: true
             )
-            
+            .zIndex(2) // Ensure dropdown appears above other content
+
             Text("to")
                 .font(.title3)
                 .foregroundStyle(.secondary)
-            
-            chipButton(
+
+            InlineLocationField(
+                coordinate: $toCoordinate,
+                locationName: Binding(
+                    get: { toName ?? "" },
+                    set: { toName = $0.isEmpty ? nil : $0 }
+                ),
+                locationAddress: $toAddress,
+                placeholder: "Destination location",
                 icon: "mappin.circle.fill",
-                iconColor: toCoordinate != nil ? .red : .gray,
-                title: toName ?? "Destination Location",
-                subtitle: toAddress,
-                isPlaceholder: toCoordinate == nil,
-                action: {
-                    activeSearchType = .destination
-                    showingLocationSelection = true
-                }
+                iconColor: toCoordinate != nil ? .red : .gray
             )
+            .zIndex(1) // Ensure dropdown appears above other content
+            .onChange(of: toName) { _, newValue in
+                if let name = newValue, label.isEmpty {
+                    label = name
+                }
+            }
             
             Text("by")
                 .font(.title3)
@@ -612,48 +583,7 @@ struct DepartureWizardView: View {
         return formatter.string(from: date)
     }
     
-    // MARK: - Sheets
-    @ViewBuilder
-    private var locationSelectionSheet: some View {
-        switch activeSearchType {
-        case .origin:
-            LocationSelectionSheet(
-                type: .origin,
-                coordinate: $fromCoordinate,
-                locationName: $fromName,
-                locationAddress: $fromAddress,
-                onUseCurrentLocation: {
-                    isUsingCurrentLocation = true
-                },
-                onCustomLocationSelected: {
-                    isUsingCurrentLocation = false
-                }
-            )
-        case .destination:
-            LocationSelectionSheet(
-                type: .destination,
-                coordinate: $toCoordinate,
-                locationName: Binding(
-                    get: { toName ?? "" },
-                    set: { toName = $0.isEmpty ? nil : $0 }
-                ),
-                locationAddress: $toAddress
-            )
-            .onChange(of: toName) { _, newValue in
-                if let name = newValue, label.isEmpty {
-                    label = name
-                }
-                calculateTravelTime()
-            }
-        }
-    }
-    
     // MARK: - Logic
-    private func setupCurrentLocation() {
-        if isUsingCurrentLocation {
-            fromCoordinate = locationManager.userLocation
-        }
-    }
     
     private func loadExistingDeparture() {
         guard let departure = departure else { return }
@@ -681,7 +611,6 @@ struct DepartureWizardView: View {
         if let originName = departure.originName {
             fromName = originName
             fromAddress = departure.originAddress
-            isUsingCurrentLocation = false
             if let lat = departure.originLat, let lon = departure.originLong {
                 fromCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
             }
@@ -689,16 +618,7 @@ struct DepartureWizardView: View {
     }
     
     private func calculateTravelTime() {
-        guard let to = toCoordinate else { return }
-        
-        let from: CLLocationCoordinate2D
-        if isUsingCurrentLocation {
-            guard let current = locationManager.userLocation else { return }
-            from = current
-        } else {
-            guard let origin = fromCoordinate else { return }
-            from = origin
-        }
+        guard let to = toCoordinate, let from = fromCoordinate else { return }
         
         // Guard against same origin/destination
         if abs(from.latitude - to.latitude) < 0.0001 && abs(from.longitude - to.longitude) < 0.0001 {
@@ -752,18 +672,11 @@ struct DepartureWizardView: View {
         dep.destinationAddress = toAddress
         dep.destinationLat = toCoordinate?.latitude
         dep.destinationLong = toCoordinate?.longitude
-        
-        if isUsingCurrentLocation {
-            dep.originName = "Current Location"
-            dep.originAddress = nil
-            dep.originLat = fromCoordinate?.latitude
-            dep.originLong = fromCoordinate?.longitude
-        } else {
-            dep.originName = fromName
-            dep.originAddress = fromAddress
-            dep.originLat = fromCoordinate?.latitude
-            dep.originLong = fromCoordinate?.longitude
-        }
+
+        dep.originName = fromName
+        dep.originAddress = fromAddress
+        dep.originLat = fromCoordinate?.latitude
+        dep.originLong = fromCoordinate?.longitude
 
         dep.hasPreWakeAlarm = hasPreWakeAlarm
         dep.transportType = transportMode.rawValue

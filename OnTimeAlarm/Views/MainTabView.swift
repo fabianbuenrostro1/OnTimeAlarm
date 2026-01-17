@@ -18,6 +18,6 @@ struct MainTabView: View {
 
 #Preview {
     MainTabView()
-        .modelContainer(for: [Departure.self, Preferences.self, SavedPlace.self], inMemory: true)
+        .modelContainer(for: [Departure.self, Preferences.self], inMemory: true)
         .environment(LocationManager())
 }

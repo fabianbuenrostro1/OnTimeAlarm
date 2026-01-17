@@ -1,33 +1,23 @@
----
-description: Build and Run OnTimeAlarm on iPhone Simulator
----
-// turbo-all
+# Run OnTimeAlarm in iOS Simulator
 
-1. Boot the Simulator
+## Quick Commands
+
+### Build and Run
 ```bash
-xcrun simctl boot "iPhone 16 Pro" || true
-open -a Simulator
+cd "/Users/fabianbuenrostro/Cursor Projects/Antigravity/On Time Alarm" && xcodegen generate && xcodebuild -scheme OnTimeAlarm -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build && xcrun simctl boot "iPhone 16 Pro" 2>/dev/null || true && open -a Simulator && xcrun simctl install "iPhone 16 Pro" ~/Library/Developer/Xcode/DerivedData/OnTimeAlarm-cllodkhnyzsaszaigyxcouggbdri/Build/Products/Debug-iphonesimulator/OnTimeAlarm.app && xcrun simctl launch "iPhone 16 Pro" com.antigravity.OnTimeAlarm
 ```
 
-2. Build the App
+### Run Only (already built)
 ```bash
-cd "/Users/fabianbuenrostro/Cursor Projects/Antigravity/On Time Alarm"
-xcodegen generate
-xcodebuild -project OnTimeAlarm.xcodeproj -scheme OnTimeAlarm -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
+xcrun simctl boot "iPhone 16 Pro" 2>/dev/null || true && open -a Simulator && xcrun simctl install "iPhone 16 Pro" ~/Library/Developer/Xcode/DerivedData/OnTimeAlarm-cllodkhnyzsaszaigyxcouggbdri/Build/Products/Debug-iphonesimulator/OnTimeAlarm.app && xcrun simctl launch "iPhone 16 Pro" com.antigravity.OnTimeAlarm
 ```
 
-3. Install and Launch
+### Build Only
 ```bash
-# Find the built app path
-APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "OnTimeAlarm.app" -path "*/Build/Products/Debug-iphonesimulator/*" | head -n 1)
-
-if [ -z "$APP_PATH" ]; then
-    echo "Could not find built app"
-    exit 1
-fi
-
-echo "Installing $APP_PATH..."
-xcrun simctl uninstall "iPhone 16 Pro" com.antigravity.OnTimeAlarm || true
-xcrun simctl install "iPhone 16 Pro" "$APP_PATH"
-xcrun simctl launch "iPhone 16 Pro" com.antigravity.OnTimeAlarm
+cd "/Users/fabianbuenrostro/Cursor Projects/Antigravity/On Time Alarm" && xcodegen generate && xcodebuild -scheme OnTimeAlarm -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
 ```
+
+## App Info
+- **Bundle ID**: `com.antigravity.OnTimeAlarm`
+- **Simulator**: iPhone 16 Pro
+- **Min iOS**: 17.0
