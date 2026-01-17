@@ -6,5 +6,7 @@
 	<string>On Time Alarm schedules wake-up and departure alarms to help you arrive on time.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>On Time Alarm needs your location to calculate travel time from your current location.</string>
+	<key>NSWeatherKitUsageDescription</key>
+	<string>On Time Alarm uses weather data to show conditions at your destination when you arrive.</string>
 </dict>
 </plist>

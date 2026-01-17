@@ -31,6 +31,29 @@ enum TrafficStatus {
         case .unknown: return ""
         }
     }
+
+    var title: String {
+        switch self {
+        case .clear: return "Traffic looks clear"
+        case .moderate: return "Expect moderate traffic"
+        case .heavy: return "Heavy traffic ahead"
+        case .unknown: return "Traffic info unavailable"
+        }
+    }
+
+    func subtitle(travelTime: TimeInterval, transportVerb: String) -> String {
+        let formattedTime = TimeCalculator.formatDurationReadable(travelTime)
+        switch self {
+        case .clear:
+            return "Your \(formattedTime) \(transportVerb) should be smooth."
+        case .moderate:
+            return "Allow a bit of extra time for your \(transportVerb)."
+        case .heavy:
+            return "Consider leaving earlier — delays expected."
+        case .unknown:
+            return "Estimated \(transportVerb) time: \(formattedTime)."
+        }
+    }
 }
 
 // MARK: - Timeline Flow View (Simplified for AlarmKit)

@@ -10,6 +10,11 @@ struct DepartureDetailView: View {
     @State private var showingEditor = false
     @State private var currentTravelTime: TimeInterval?
     @State private var trafficStatus: TrafficStatus = .unknown
+    @State private var weatherInfo: WeatherService.WeatherInfo?
+    @State private var isLoadingWeather: Bool = false
+    @State private var weatherError: String?
+    @State private var isEditingLabel = false
+    @FocusState private var labelFieldFocused: Bool
 
     // MARK: - Computed Properties
 
@@ -112,67 +117,119 @@ struct DepartureDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
 
-                // Toggle row - iOS Settings pattern
-                HStack {
-                    Text("Alarm active")
-                        .font(.body)
+                // Hero header with integrated toggle
+                HStack(alignment: .center) {
+                    HStack(spacing: 6) {
+                        Text("Off to")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+
+                        if isEditingLabel {
+                            TextField("Work", text: $departure.label)
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .textFieldStyle(.plain)
+                                .focused($labelFieldFocused)
+                                .onSubmit {
+                                    isEditingLabel = false
+                                }
+                                .onChange(of: labelFieldFocused) { _, focused in
+                                    if !focused {
+                                        isEditingLabel = false
+                                    }
+                                }
+                        } else {
+                            Text(departure.label.isEmpty ? "..." : departure.label)
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .underline(color: .secondary.opacity(0.4))
+                                .onTapGesture {
+                                    isEditingLabel = true
+                                    labelFieldFocused = true
+                                }
+                        }
+                    }
                     Spacer()
                     Toggle("", isOn: $departure.isEnabled)
                         .labelsHidden()
                         .tint(.orange)
                 }
-                .padding(.vertical, 12)
-                .padding(.horizontal, 16)
-                .background(Color(.systemGray6))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                // First paragraph - Wake up
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("You'll wake up at \(timeFormatter.string(from: departure.wakeUpTime))")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    Text("with \(TimeCalculator.formatDurationReadable(departure.prepDuration)) to get ready.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                // Content group with grayscale when disabled
+                Group {
+                    // First paragraph - Wake up
+                    HStack(alignment: .top, spacing: 14) {
+                        Image(systemName: "bell.fill")
+                            .font(.title2)
+                            .foregroundStyle(.orange)
+                            .frame(width: 28)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("You'll wake up at \(timeFormatter.string(from: departure.wakeUpTime))")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                            Text("with \(TimeCalculator.formatDurationReadable(departure.prepDuration)) to get ready.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    // Second paragraph - Leave and arrive
+                    HStack(alignment: .top, spacing: 14) {
+                        Image(systemName: transportModeIcon)
+                            .font(.title2)
+                            .foregroundStyle(.blue)
+                            .frame(width: 28)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Leave by \(timeFormatter.string(from: departure.departureTime))")
+                                .font(.title2)
+                                .fontWeight(.semibold)
+                            Text("to arrive at \(destinationDisplayName) by \(timeFormatter.string(from: departure.targetArrivalTime)).")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    // Map Preview (smaller, supporting role)
+                    MapPreviewView(
+                        originCoordinate: originCoordinate,
+                        destinationCoordinate: destinationCoordinate,
+                        transportType: transportModeType,
+                        onTap: openInMaps,
+                        showOpenMapsHint: false
+                    )
+                    .frame(height: 160)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+
+                    // Weather paragraph
+                    weatherParagraph
+
+                    // Traffic paragraph
+                    trafficParagraph
+
+                    // Positivity paragraph
+                    positivityParagraph
+
+                    // Open in Maps button (moved to bottom)
+                    Button {
+                        openInMaps()
+                    } label: {
+                        Label("Open in Maps", systemImage: "arrow.triangle.turn.up.right.diamond.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .tint(.blue)
                 }
-
-                // Second paragraph - Leave and arrive
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Leave by \(timeFormatter.string(from: departure.departureTime))")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    Text("to arrive at \(destinationDisplayName) by \(timeFormatter.string(from: departure.targetArrivalTime)).")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                // Map Preview (smaller, supporting role)
-                MapPreviewView(
-                    originCoordinate: originCoordinate,
-                    destinationCoordinate: destinationCoordinate,
-                    transportType: transportModeType,
-                    onTap: openInMaps,
-                    showOpenMapsHint: false
-                )
-                .frame(height: 160)
-                .clipShape(RoundedRectangle(cornerRadius: 14))
-
-                // Open in Maps button
-                Button {
-                    openInMaps()
-                } label: {
-                    Label("Open in Maps", systemImage: "arrow.triangle.turn.up.right.diamond.fill")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-                .tint(.blue)
+                .saturation(departure.isEnabled ? 1.0 : 0.0)
+                .opacity(departure.isEnabled ? 1.0 : 0.6)
+                .animation(.easeInOut(duration: 0.3), value: departure.isEnabled)
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 40)
         }
-        .navigationTitle(contextualTimingPhrase)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
         .toolbar {
@@ -189,6 +246,7 @@ struct DepartureDetailView: View {
         }
         .task {
             await refreshTravelTime()
+            await refreshWeather()
         }
         .onChange(of: departure.isEnabled) { _, isEnabled in
             Task {
@@ -257,6 +315,127 @@ struct DepartureDetailView: View {
             }
         } else {
             trafficStatus = .unknown
+        }
+    }
+
+    private func refreshWeather() async {
+        guard let destCoord = destinationCoordinate else {
+            weatherError = "No destination coordinates"
+            return
+        }
+
+        isLoadingWeather = true
+        weatherError = nil
+
+        let result = await WeatherService.fetchWeatherWithError(
+            for: destCoord,
+            at: departure.targetArrivalTime
+        )
+
+        switch result {
+        case .success(let info):
+            weatherInfo = info
+        case .failure(let error):
+            weatherInfo = nil
+            weatherError = error
+        }
+
+        isLoadingWeather = false
+    }
+
+    // MARK: - Info Paragraphs
+
+    @ViewBuilder
+    private var weatherParagraph: some View {
+        if let weather = weatherInfo {
+            HStack(alignment: .top, spacing: 14) {
+                Image(systemName: weather.symbolName)
+                    .font(.title2)
+                    .foregroundStyle(weather.condition.color)
+                    .frame(width: 28)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Expect \(weather.formattedTemperature) and \(weather.conditionDescription.lowercased()) at \(timeFormatter.string(from: departure.targetArrivalTime))")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+
+                    if let suggestion = weather.suggestion {
+                        Text(suggestion)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        } else if isLoadingWeather {
+            HStack(alignment: .top, spacing: 14) {
+                ProgressView()
+                    .frame(width: 28)
+
+                Text("Loading weather...")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        } else if let error = weatherError {
+            HStack(alignment: .top, spacing: 14) {
+                Image(systemName: "exclamationmark.icloud")
+                    .font(.title2)
+                    .foregroundStyle(.red)
+                    .frame(width: 28)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Weather unavailable")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+
+                    Text(error)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var trafficParagraph: some View {
+        if trafficStatus != .unknown {
+            HStack(alignment: .top, spacing: 14) {
+                Image(systemName: trafficStatus.icon)
+                    .font(.title2)
+                    .foregroundStyle(trafficStatus.color)
+                    .frame(width: 28)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(trafficStatus.title)
+                        .font(.title2)
+                        .fontWeight(.semibold)
+
+                    Text(trafficStatus.subtitle(
+                        travelTime: departure.effectiveTravelTime,
+                        transportVerb: transportVerb
+                    ))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    private var positivityParagraph: some View {
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: "sparkles")
+                .font(.title2)
+                .foregroundStyle(.yellow)
+                .frame(width: 28)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Have a great day!")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+
+                Text("You're all set for an on-time arrival.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }
