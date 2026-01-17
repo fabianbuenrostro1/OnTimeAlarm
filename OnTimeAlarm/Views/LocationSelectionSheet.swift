@@ -27,6 +27,7 @@ struct LocationSelectionSheet: View {
 
     // For origin only
     var onUseCurrentLocation: (() -> Void)? = nil
+    var onCustomLocationSelected: (() -> Void)? = nil
 
     // Tab state
     @State private var selectedTab: LocationTab = .search
@@ -334,6 +335,7 @@ struct LocationSelectionSheet: View {
                     coordinate = coord
                     locationName = name
                     locationAddress = address
+                    onCustomLocationSelected?()
                     dismiss()
                 }
             }
@@ -344,6 +346,7 @@ struct LocationSelectionSheet: View {
         coordinate = place.coordinate
         locationName = place.name
         locationAddress = place.address
+        onCustomLocationSelected?()
         dismiss()
     }
 

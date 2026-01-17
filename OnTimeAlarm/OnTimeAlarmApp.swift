@@ -4,17 +4,21 @@ import SwiftData
 @main
 struct OnTimeAlarmApp: App {
     @State private var locationManager = LocationManager()
-    
-    init() {
-        NotificationManager.shared.requestAuthorization()
-    }
-    
+
     var body: some Scene {
         WindowGroup {
             AlarmListView()
                 .environment(locationManager)
-                .onAppear {
+                .task {
+                    // Request location permission
                     locationManager.requestPermission()
+
+                    // Request AlarmKit authorization
+                    do {
+                        try await AlarmKitManager.shared.requestAuthorization()
+                    } catch {
+                        print("AlarmKit authorization failed: \(error)")
+                    }
                 }
         }
         .modelContainer(for: [Departure.self, Preferences.self, SavedPlace.self])

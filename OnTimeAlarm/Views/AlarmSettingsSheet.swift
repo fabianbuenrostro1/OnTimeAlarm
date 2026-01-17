@@ -2,74 +2,71 @@ import SwiftUI
 
 struct AlarmSettingsSheet: View {
     @Environment(\.dismiss) private var dismiss
-    
-    @Binding var isBarrageEnabled: Bool
-    @Binding var preWakeAlarms: Int
-    @Binding var postWakeAlarms: Int
-    @Binding var barrageInterval: TimeInterval
-    
+
+    @Binding var hasPreWakeAlarm: Bool
+
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    Toggle(isOn: $isBarrageEnabled) {
+                    Toggle(isOn: $hasPreWakeAlarm) {
                         HStack {
-                            Image(systemName: "bell.badge.waveform.fill")
-                                .foregroundStyle(isBarrageEnabled ? .orange : .gray)
-                            Text("Multiple Alarms")
-                                .fontWeight(.medium)
+                            Image(systemName: "bell.badge")
+                                .foregroundStyle(hasPreWakeAlarm ? .blue : .gray)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Pre-Wake Reminder")
+                                    .fontWeight(.medium)
+                                Text("5 minutes before wake up")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
-                    .tint(.orange)
-                    
-                    if isBarrageEnabled {
-                        Stepper(value: $preWakeAlarms, in: 0...5) {
-                            HStack {
-                                Text("Before Wake Up")
-                                Spacer()
-                                Text("\(preWakeAlarms) alarms")
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        
-                        Stepper(value: $postWakeAlarms, in: 0...30) {
-                            HStack {
-                                Text("After Wake Up")
-                                Spacer()
-                                Text("\(postWakeAlarms) alarms")
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        
-                        Picker("Interval", selection: $barrageInterval) {
-                            Text("1 min").tag(TimeInterval(60))
-                            Text("2 min").tag(TimeInterval(120))
-                            Text("5 min").tag(TimeInterval(300))
-                            Text("10 min").tag(TimeInterval(600))
-                        }
+                    .tint(.blue)
+                } header: {
+                    Text("Alarm Strategy")
+                } footer: {
+                    Text("A gentle reminder helps you transition out of deep sleep before the main alarm.")
+                }
+
+                Section("Your Alarms") {
+                    AlarmSequencePreview(hasPreWakeAlarm: hasPreWakeAlarm)
+                        .padding(.vertical, 8)
+                }
+
+                Section {
+                    VStack(alignment: .leading, spacing: 12) {
+                        AlarmTypeRow(
+                            icon: "bell",
+                            iconColor: .blue,
+                            title: "Pre-Wake",
+                            description: "Gentle reminder 5 min before",
+                            isEnabled: hasPreWakeAlarm
+                        )
+
+                        AlarmTypeRow(
+                            icon: "bell.fill",
+                            iconColor: .orange,
+                            title: "Wake Up",
+                            description: "Main alarm with snooze button",
+                            isEnabled: true
+                        )
+
+                        AlarmTypeRow(
+                            icon: "car.fill",
+                            iconColor: .blue,
+                            title: "Leave",
+                            description: "Time to head out",
+                            isEnabled: true
+                        )
                     }
                 } header: {
-                    Text("Configuration")
+                    Text("Alarm Sequence")
                 } footer: {
-                    if isBarrageEnabled {
-                        Text("This will schedule **\(preWakeAlarms + 1 + postWakeAlarms) alarms total**:\n• \(preWakeAlarms) leading up to wake up\n• 1 at the exact wake up time\n• \(postWakeAlarms) following as a safety net.")
-                            .multilineTextAlignment(.leading)
-                    } else {
-                        Text("A single alarm will fire at your calculated wake up time.")
-                    }
-                }
-                
-                if isBarrageEnabled {
-                    Section("Visual Preview") {
-                        BarrageTimelinePreview(
-                            preWakeAlarms: preWakeAlarms,
-                            postWakeAlarms: postWakeAlarms
-                        )
-                        .padding(.vertical, 8)
-                    }
+                    Text("The wake-up and leave alarms include a snooze button. Tap snooze to get 5 more minutes.")
                 }
             }
-            .navigationTitle("Alarm Strategy")
+            .navigationTitle("Alarm Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -81,55 +78,106 @@ struct AlarmSettingsSheet: View {
     }
 }
 
-struct BarrageTimelinePreview: View {
-    let preWakeAlarms: Int
-    let postWakeAlarms: Int
-    
+struct AlarmSequencePreview: View {
+    let hasPreWakeAlarm: Bool
+
     var body: some View {
-        HStack(spacing: 6) {
-            // Pre-wake dots
-            if preWakeAlarms > 0 {
-                ForEach(0..<preWakeAlarms, id: \.self) { _ in
+        HStack(spacing: 12) {
+            // Pre-wake dot
+            if hasPreWakeAlarm {
+                VStack(spacing: 4) {
                     Circle()
-                        .fill(Color.blue.opacity(0.5))
-                        .frame(width: 8, height: 8)
-                }
-            }
-            
-            // Main wake dot
-            Circle()
-                .fill(Color.orange)
-                .frame(width: 16, height: 16)
-                .overlay {
-                    Image(systemName: "bell.fill")
-                        .font(.system(size: 9))
-                        .foregroundStyle(.white)
-                }
-            
-            // Post-wake dots
-            if postWakeAlarms > 0 {
-                ForEach(0..<min(postWakeAlarms, 10), id: \.self) { i in
-                    Circle()
-                        .fill(Color.red.opacity(0.3 + Double(i) * 0.07))
-                        .frame(width: 8, height: 8)
-                }
-                
-                if postWakeAlarms > 10 {
-                    Text("+\(postWakeAlarms - 10)")
+                        .fill(Color.blue.opacity(0.6))
+                        .frame(width: 12, height: 12)
+                    Text("Pre")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
+            }
+
+            // Connecting line
+            if hasPreWakeAlarm {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(width: 20, height: 2)
+            }
+
+            // Main wake alarm
+            VStack(spacing: 4) {
+                Circle()
+                    .fill(Color.orange)
+                    .frame(width: 20, height: 20)
+                    .overlay {
+                        Image(systemName: "bell.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.white)
+                    }
+                Text("Wake")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            // Connecting line
+            Rectangle()
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 20, height: 2)
+
+            // Leave alarm
+            VStack(spacing: 4) {
+                Circle()
+                    .fill(Color.blue)
+                    .frame(width: 16, height: 16)
+                    .overlay {
+                        Image(systemName: "car.fill")
+                            .font(.system(size: 8))
+                            .foregroundStyle(.white)
+                    }
+                Text("Leave")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
     }
 }
 
+struct AlarmTypeRow: View {
+    let icon: String
+    let iconColor: Color
+    let title: String
+    let description: String
+    let isEnabled: Bool
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundStyle(isEnabled ? iconColor : .gray)
+                .frame(width: 24)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(isEnabled ? .primary : .secondary)
+                Text(description)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            if isEnabled {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+            } else {
+                Image(systemName: "circle")
+                    .foregroundStyle(.gray.opacity(0.5))
+            }
+        }
+    }
+}
+
 #Preview {
-    AlarmSettingsSheet(
-        isBarrageEnabled: .constant(true),
-        preWakeAlarms: .constant(2),
-        postWakeAlarms: .constant(5),
-        barrageInterval: .constant(120)
-    )
+    AlarmSettingsSheet(hasPreWakeAlarm: .constant(true))
 }

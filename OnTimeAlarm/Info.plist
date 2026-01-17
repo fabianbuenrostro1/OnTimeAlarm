@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSAlarmKitUsageDescription</key>
+	<string>On Time Alarm schedules wake-up and departure alarms to help you arrive on time.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>On Time Alarm needs your location to calculate travel time from your current location.</string>
+</dict>
+</plist>

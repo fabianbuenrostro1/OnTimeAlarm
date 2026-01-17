@@ -53,7 +53,9 @@ struct AlarmListView: View {
     private func deleteDepartures(at offsets: IndexSet) {
         for index in offsets {
             let departure = departures[index]
-            NotificationManager.shared.cancelNotifications(for: departure)
+            Task {
+                await AlarmKitManager.shared.cancelAlarms(for: departure)
+            }
             modelContext.delete(departure)
         }
     }

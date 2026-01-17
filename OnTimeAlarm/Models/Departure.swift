@@ -7,93 +7,94 @@ final class Departure {
     @Attribute(.unique) var id: UUID
     var label: String
     var createdDate: Date
-    
+
     // Hard Constraints
     var targetArrivalTime: Date
     var prepDuration: TimeInterval    // seconds
     var staticTravelTime: TimeInterval // seconds
-    
+
     // State
     var isEnabled: Bool
-    
+
     // Origin (From) - Snapshot of location when created/edited
     var originLat: Double?
     var originLong: Double?
     var originName: String?
     var originAddress: String? // Detailed address (optional)
-    
+
     // Destination (To)
     var destinationLat: Double?
     var destinationLong: Double?
     var destinationName: String?
     var destinationAddress: String? // Detailed address (optional)
-    
+
     // Settings
     var useLiveTraffic: Bool
     var transportType: String
     var homeKitSceneUUID: String?
     var liveTravelTime: TimeInterval? // From MapKit
-    
-    // Barrage Mode Configuration
-    var isBarrageEnabled: Bool
-    var preWakeAlarms: Int      // Alarms BEFORE wake up time (0-5)
-    var postWakeAlarms: Int     // Alarms AFTER wake up time (0-30)
-    var barrageInterval: TimeInterval  // Seconds between each alarm
-    
+
+    // Alarm Configuration
+    var hasPreWakeAlarm: Bool  // Whether to show a gentle reminder 5 min before wake
+
+    // AlarmKit Alarm IDs (for tracking and cancellation)
+    var preWakeAlarmId: UUID?
+    var mainWakeAlarmId: UUID?
+    var leaveAlarmId: UUID?
+
     // Schedule (Repeat Days)
     var repeatDays: [Int]  // 0 = Sunday, 1 = Monday, ... 6 = Saturday
-    
+
     // MARK: - Computed Properties
-    
+
     /// Use live travel time if available, else static
     var effectiveTravelTime: TimeInterval {
         liveTravelTime ?? staticTravelTime
     }
-    
+
     /// The time to wake up (start preparing)
     var wakeUpTime: Date {
         targetArrivalTime.addingTimeInterval(-(prepDuration + effectiveTravelTime))
     }
-    
+
     /// The time to leave the house
     var departureTime: Date {
         targetArrivalTime.addingTimeInterval(-effectiveTravelTime)
     }
-    
-    /// Total barrage alarm count
-    var totalBarrageAlarms: Int {
-        guard isBarrageEnabled else { return 0 }
-        return preWakeAlarms + 1 + postWakeAlarms // pre + main + post
+
+    /// Pre-wake alarm time (5 minutes before wake up)
+    var preWakeTime: Date? {
+        guard hasPreWakeAlarm else { return nil }
+        return wakeUpTime.addingTimeInterval(-5 * 60)
     }
-    
+
+    /// Total alarm count (for display purposes)
+    var totalAlarmCount: Int {
+        var count = 2 // Main wake + Leave
+        if hasPreWakeAlarm { count += 1 }
+        return count
+    }
+
     /// All scheduled alarm times (sorted)
     var scheduledAlarmTimes: [Date] {
         var times: [Date] = []
-        let wake = wakeUpTime
-        
-        if isBarrageEnabled {
-            // Pre-wake alarms (before wake up)
-            for i in (1...preWakeAlarms).reversed() {
-                times.append(wake.addingTimeInterval(-Double(i) * barrageInterval))
-            }
-            
-            // Main wake up alarm
-            times.append(wake)
-            
-            // Post-wake alarms (after wake up)
-            for i in 1...postWakeAlarms {
-                times.append(wake.addingTimeInterval(Double(i) * barrageInterval))
-            }
-        } else {
-            // Single alarm at wake time
-            times.append(wake)
+
+        // Pre-wake alarm (if enabled)
+        if let preWake = preWakeTime {
+            times.append(preWake)
         }
-        
+
+        // Main wake up alarm
+        times.append(wakeUpTime)
+
+        // Leave alarm
+        times.append(departureTime)
+
         return times
     }
-    
+
     // MARK: - Initialization
-    
+
     init(
         label: String = "Untitled",
         targetArrivalTime: Date = Date(),
@@ -107,17 +108,19 @@ final class Departure {
         self.prepDuration = prepDuration
         self.staticTravelTime = staticTravelTime
         self.isEnabled = true
-        
+
         // Settings defaults
         self.useLiveTraffic = false
         self.transportType = "automobile"
-        
-        // Barrage defaults
-        self.isBarrageEnabled = false
-        self.preWakeAlarms = 2
-        self.postWakeAlarms = 5
-        self.barrageInterval = 120 // 2 minutes
-        
+
+        // Alarm defaults
+        self.hasPreWakeAlarm = true  // Enable pre-wake by default
+
+        // Generate alarm IDs
+        self.preWakeAlarmId = UUID()
+        self.mainWakeAlarmId = UUID()
+        self.leaveAlarmId = UUID()
+
         // Schedule defaults (empty = no repeat)
         self.repeatDays = []
     }

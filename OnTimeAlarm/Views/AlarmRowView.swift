@@ -48,12 +48,14 @@ struct AlarmRowView: View {
             // Toggle switch
             Toggle("", isOn: $departure.isEnabled)
                 .labelsHidden()
-                .tint(.green)
+                .tint(.orange)
                 .onChange(of: departure.isEnabled) { _, isEnabled in
-                    if isEnabled {
-                        NotificationManager.shared.scheduleNotifications(for: departure)
-                    } else {
-                        NotificationManager.shared.cancelNotifications(for: departure)
+                    Task {
+                        if isEnabled {
+                            try? await AlarmKitManager.shared.scheduleAlarms(for: departure)
+                        } else {
+                            await AlarmKitManager.shared.cancelAlarms(for: departure)
+                        }
                     }
                 }
         }

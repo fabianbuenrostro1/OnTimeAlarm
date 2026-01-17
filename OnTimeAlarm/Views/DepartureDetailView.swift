@@ -81,22 +81,12 @@ struct DepartureDetailView: View {
                 }
                 .ignoresSafeArea(edges: .top)
 
-                // Layer 2: Scrollable floating card
-                ScrollView {
+                // Layer 2: Fixed floating card (no scroll)
+                VStack(spacing: 0) {
+                    Spacer()
+
+                    // Floating Card
                     VStack(spacing: 0) {
-                        // Spacer to push card below map
-                        Color.clear
-                            .frame(height: geometry.size.height * 0.28)
-
-                        // Floating Card
-                        VStack(spacing: 0) {
-                            // Drag indicator
-                            Capsule()
-                                .fill(Color(.systemGray4))
-                                .frame(width: 36, height: 5)
-                                .padding(.top, 8)
-                                .padding(.bottom, 12)
-
                             // Card Content
                             VStack(spacing: 12) {
                                 // Card Header: Title + Toggle
@@ -120,7 +110,7 @@ struct DepartureDetailView: View {
 
                                     Toggle("", isOn: $departure.isEnabled)
                                         .labelsHidden()
-                                        .tint(departure.isBarrageEnabled ? .orange : .green)
+                                        .tint(.orange)
                                 }
 
                                 Divider()
@@ -146,11 +136,7 @@ struct DepartureDetailView: View {
                                         travelTime: departure.effectiveTravelTime,
                                         arrivalTime: departure.targetArrivalTime,
                                         isHeavyTraffic: trafficStatus == .heavy,
-                                        alarmCount: departure.totalBarrageAlarms > 0 ? departure.totalBarrageAlarms : 1,
-                                        isBarrageEnabled: departure.isBarrageEnabled,
-                                        preWakeAlarms: departure.preWakeAlarms,
-                                        postWakeAlarms: departure.postWakeAlarms,
-                                        barrageInterval: departure.barrageInterval,
+                                        hasPreWakeAlarm: departure.hasPreWakeAlarm,
                                         trafficStatus: trafficStatus
                                     )
                                 }
@@ -167,8 +153,9 @@ struct DepartureDetailView: View {
                                 .tint(.blue)
                                 .padding(.top, 8)
                             }
+                            .padding(.top, 20)
                             .padding(.horizontal, 20)
-                            .padding(.bottom, 24)
+                            .padding(.bottom, 16)
                         }
                         .background(
                             UnevenRoundedRectangle(
@@ -180,7 +167,7 @@ struct DepartureDetailView: View {
                             .fill(Color(.systemBackground))
                             .shadow(color: .black.opacity(0.15), radius: 12, y: -4)
                         )
-                    }
+                        .offset(y: -40)
                 }
             }
         }
@@ -203,10 +190,12 @@ struct DepartureDetailView: View {
             await refreshTravelTime()
         }
         .onChange(of: departure.isEnabled) { _, isEnabled in
-            if isEnabled {
-                NotificationManager.shared.scheduleNotifications(for: departure)
-            } else {
-                NotificationManager.shared.cancelNotifications(for: departure)
+            Task {
+                if isEnabled {
+                    try? await AlarmKitManager.shared.scheduleAlarms(for: departure)
+                } else {
+                    await AlarmKitManager.shared.cancelAlarms(for: departure)
+                }
             }
         }
     }
@@ -239,7 +228,15 @@ struct DepartureDetailView: View {
             launchOptions[MKLaunchOptionsDirectionsModeKey] = MKLaunchOptionsDirectionsModeDriving
         }
 
-        destination.openInMaps(launchOptions: launchOptions)
+        // Use stored origin if available and not "Current Location", otherwise use device's current location
+        if let originCoord = originCoordinate,
+           departure.originName != "Current Location" {
+            let origin = MKMapItem(placemark: MKPlacemark(coordinate: originCoord))
+            origin.name = originDisplayName
+            MKMapItem.openMaps(with: [origin, destination], launchOptions: launchOptions)
+        } else {
+            MKMapItem.openMaps(with: [MKMapItem.forCurrentLocation(), destination], launchOptions: launchOptions)
+        }
     }
 
     private func refreshTravelTime() async {
@@ -284,9 +281,7 @@ struct DepartureDetailView: View {
     departure.destinationLong = -122.2712
     departure.destinationName = "Office"
     departure.originName = "Home"
-    departure.isBarrageEnabled = true
-    departure.preWakeAlarms = 2
-    departure.postWakeAlarms = 3
+    departure.hasPreWakeAlarm = true
 
     return NavigationStack {
         DepartureDetailView(departure: departure)

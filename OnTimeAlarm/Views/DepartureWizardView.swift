@@ -52,11 +52,8 @@ struct DepartureWizardView: View {
     @State private var transportMode: TravelTimeService.TransportMode = .automobile
     @State private var isLoadingTravel: Bool = false
     
-    // Barrage Mode
-    @State private var isBarrageEnabled: Bool = true
-    @State private var preWakeAlarms: Int = 2
-    @State private var postWakeAlarms: Int = 5
-    @State private var barrageInterval: TimeInterval = 120
+    // Alarm Settings
+    @State private var hasPreWakeAlarm: Bool = true
     
     // Repeat Days (1 = Sunday, 2 = Monday, ..., 7 = Saturday)
     @State private var repeatDays: Set<Int> = []
@@ -161,12 +158,7 @@ struct DepartureWizardView: View {
                 }
             }
             .sheet(isPresented: $showingAlarmSettings) {
-                AlarmSettingsSheet(
-                    isBarrageEnabled: $isBarrageEnabled,
-                    preWakeAlarms: $preWakeAlarms,
-                    postWakeAlarms: $postWakeAlarms,
-                    barrageInterval: $barrageInterval
-                )
+                AlarmSettingsSheet(hasPreWakeAlarm: $hasPreWakeAlarm)
             }
             .sheet(isPresented: $showingRepeatSelection) {
                 repeatSettingsSheet
@@ -518,15 +510,15 @@ struct DepartureWizardView: View {
             Text("And I need")
                 .font(.title3)
                 .foregroundStyle(.secondary)
-            
+
             chipButton(
-                icon: isBarrageEnabled ? "bell.badge.waveform.fill" : "bell.fill",
-                iconColor: isBarrageEnabled ? .orange : .gray,
+                icon: hasPreWakeAlarm ? "bell.badge" : "bell.fill",
+                iconColor: .orange,
                 title: alarmSummaryTitle,
                 subtitle: alarmSummarySubtitle,
                 action: { showingAlarmSettings = true }
             )
-            
+
             Text("to ensure I'm up.")
                 .font(.title3)
                 .foregroundStyle(.secondary)
@@ -534,28 +526,20 @@ struct DepartureWizardView: View {
         .padding(.horizontal, 20)
         .padding(.top, 8)
     }
-    
+
     private var alarmSummaryTitle: String {
-        if isBarrageEnabled {
-            if preWakeAlarms > 0 && postWakeAlarms > 0 {
-                return "\(preWakeAlarms) alarms before & \(postWakeAlarms) after"
-            } else if preWakeAlarms > 0 {
-                return "\(preWakeAlarms) alarms before wake up"
-            } else if postWakeAlarms > 0 {
-                return "\(postWakeAlarms) safety alarms after"
-            } else {
-                return "Multiple alarms"
-            }
+        if hasPreWakeAlarm {
+            return "3 alarms with snooze"
         } else {
-            return "Just one alarm"
+            return "2 alarms with snooze"
         }
     }
-    
+
     private var alarmSummarySubtitle: String? {
-        if isBarrageEnabled {
-            return "Active at wake up"
+        if hasPreWakeAlarm {
+            return "Pre-wake, wake up, and leave"
         } else {
-            return "Standard mode"
+            return "Wake up and leave"
         }
     }
     
@@ -640,14 +624,11 @@ struct DepartureWizardView: View {
                 locationAddress: $fromAddress,
                 onUseCurrentLocation: {
                     isUsingCurrentLocation = true
-                }
-            )
-            .onChange(of: fromName) { _, _ in
-                if fromName != "Current Location" {
+                },
+                onCustomLocationSelected: {
                     isUsingCurrentLocation = false
                 }
-                calculateTravelTime()
-            }
+            )
         case .destination:
             LocationSelectionSheet(
                 type: .destination,
@@ -676,16 +657,13 @@ struct DepartureWizardView: View {
     
     private func loadExistingDeparture() {
         guard let departure = departure else { return }
-        
+
         label = departure.label
         arrivalTime = departure.targetArrivalTime
         prepDuration = departure.prepDuration
         travelTime = departure.staticTravelTime
-        
-        isBarrageEnabled = departure.isBarrageEnabled
-        preWakeAlarms = departure.preWakeAlarms
-        postWakeAlarms = departure.postWakeAlarms
-        barrageInterval = departure.barrageInterval
+
+        hasPreWakeAlarm = departure.hasPreWakeAlarm
 
         // Load transport mode
         if let mode = TravelTimeService.TransportMode.allCases.first(where: { $0.rawValue == departure.transportType }) {
@@ -699,7 +677,7 @@ struct DepartureWizardView: View {
                 toCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
             }
         }
-        
+
         if let originName = departure.originName {
             fromName = originName
             fromAddress = departure.originAddress
@@ -786,12 +764,18 @@ struct DepartureWizardView: View {
             dep.originLat = fromCoordinate?.latitude
             dep.originLong = fromCoordinate?.longitude
         }
-        
-        dep.isBarrageEnabled = isBarrageEnabled
-        dep.preWakeAlarms = preWakeAlarms
-        dep.postWakeAlarms = postWakeAlarms
-        dep.barrageInterval = barrageInterval
+
+        dep.hasPreWakeAlarm = hasPreWakeAlarm
         dep.transportType = transportMode.rawValue
+
+        // Schedule alarms with AlarmKit
+        Task {
+            do {
+                try await AlarmKitManager.shared.scheduleAlarms(for: dep)
+            } catch {
+                print("Failed to schedule alarms: \(error)")
+            }
+        }
 
         dismiss()
     }
