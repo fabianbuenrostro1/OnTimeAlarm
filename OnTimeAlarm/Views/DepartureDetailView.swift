@@ -61,125 +61,136 @@ struct DepartureDetailView: View {
         departure.destinationName ?? departure.label
     }
 
+    private var contextualTimingPhrase: String {
+        let calendar = Calendar.current
+        let alertTime = departure.wakeUpTime
+
+        // Day relationship
+        let dayPhrase: String
+        if calendar.isDateInToday(alertTime) {
+            dayPhrase = "This"
+        } else if calendar.isDateInTomorrow(alertTime) {
+            dayPhrase = "Tomorrow"
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE"
+            dayPhrase = formatter.string(from: alertTime)
+        }
+
+        // Time of day based on alert hour
+        let hour = calendar.component(.hour, from: alertTime)
+        let timeOfDay: String
+        switch hour {
+        case 0..<6:   timeOfDay = "night"
+        case 6..<12:  timeOfDay = "morning"
+        case 12..<17: timeOfDay = "afternoon"
+        case 17..<21: timeOfDay = "evening"
+        default:      timeOfDay = "night"
+        }
+
+        return "\(dayPhrase) \(timeOfDay)"
+    }
+
+    private var transportVerb: String {
+        switch departure.transportType {
+        case "automobile", "Drive": return "drive"
+        case "cycling", "Bike": return "bike"
+        case "walking", "Walk": return "walk"
+        default: return "travel"
+        }
+    }
+
+    private var timeFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter
+    }
+
     // MARK: - Body
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .top) {
-                // Layer 1: Full-bleed map background
-                VStack(spacing: 0) {
-                    MapPreviewView(
-                        originCoordinate: originCoordinate,
-                        destinationCoordinate: destinationCoordinate,
-                        transportType: transportModeType,
-                        onTap: openInMaps,
-                        showOpenMapsHint: false
-                    )
-                    .frame(height: geometry.size.height * 0.50)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 28) {
 
-                    Spacer()
+                // Contextual timing phrase
+                Text(contextualTimingPhrase)
+                    .font(.title3)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 8)
+
+                // Alert time
+                narrativeBlock(
+                    phrase: "you'll be alerted at",
+                    emphasis: timeFormatter.string(from: departure.wakeUpTime),
+                    isTime: true
+                )
+
+                // Prep duration
+                Text("with \(TimeCalculator.formatDurationReadable(departure.prepDuration)) to get ready")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                // Leave time
+                narrativeBlock(
+                    phrase: "then leave by",
+                    emphasis: timeFormatter.string(from: departure.departureTime),
+                    isTime: true
+                )
+
+                // Destination
+                narrativeBlock(
+                    phrase: "to \(transportVerb) to",
+                    emphasis: destinationDisplayName
+                )
+
+                // Arrival time
+                narrativeBlock(
+                    phrase: "and arrive by",
+                    emphasis: timeFormatter.string(from: departure.targetArrivalTime),
+                    isTime: true
+                )
+
+                // Map Preview (smaller, supporting role)
+                MapPreviewView(
+                    originCoordinate: originCoordinate,
+                    destinationCoordinate: destinationCoordinate,
+                    transportType: transportModeType,
+                    onTap: openInMaps,
+                    showOpenMapsHint: false
+                )
+                .frame(height: 160)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+
+                // Open in Maps button
+                Button {
+                    openInMaps()
+                } label: {
+                    Label("Open in Maps", systemImage: "arrow.triangle.turn.up.right.diamond.fill")
+                        .frame(maxWidth: .infinity)
                 }
-                .ignoresSafeArea(edges: .top)
-
-                // Layer 2: Fixed floating card (no scroll)
-                VStack(spacing: 0) {
-                    Spacer()
-
-                    // Floating Card
-                    VStack(spacing: 0) {
-                            // Card Content
-                            VStack(spacing: 12) {
-                                // Card Header: Title + Toggle
-                                HStack(alignment: .center) {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(departure.label)
-                                            .font(.title2)
-                                            .fontWeight(.bold)
-
-                                        HStack(spacing: 4) {
-                                            Image(systemName: transportModeIcon)
-                                                .font(.caption)
-                                            Text(transportModeLabel)
-                                                .font(.caption)
-                                                .fontWeight(.medium)
-                                        }
-                                        .foregroundStyle(.secondary)
-                                    }
-
-                                    Spacer()
-
-                                    Toggle("", isOn: $departure.isEnabled)
-                                        .labelsHidden()
-                                        .tint(.orange)
-                                }
-
-                                Divider()
-
-                                // Route Section
-                                VStack(alignment: .leading, spacing: 8) {
-                                    sectionHeader("Route")
-                                    CompactLocationFooterView(
-                                        originName: originDisplayName,
-                                        destinationName: destinationDisplayName
-                                    )
-                                }
-
-                                Divider()
-
-                                // Schedule Section
-                                VStack(alignment: .leading, spacing: 8) {
-                                    sectionHeader("Schedule")
-                                    TimelineFlowView(
-                                        wakeTime: departure.wakeUpTime,
-                                        prepDuration: departure.prepDuration,
-                                        leaveTime: departure.departureTime,
-                                        travelTime: departure.effectiveTravelTime,
-                                        arrivalTime: departure.targetArrivalTime,
-                                        isHeavyTraffic: trafficStatus == .heavy,
-                                        hasPreWakeAlarm: departure.hasPreWakeAlarm,
-                                        trafficStatus: trafficStatus
-                                    )
-                                }
-
-                                // Action Button
-                                Button {
-                                    openInMaps()
-                                } label: {
-                                    Label("Open in Maps", systemImage: "arrow.triangle.turn.up.right.diamond.fill")
-                                        .frame(maxWidth: .infinity)
-                                }
-                                .buttonStyle(.bordered)
-                                .controlSize(.large)
-                                .tint(.blue)
-                                .padding(.top, 8)
-                            }
-                            .padding(.top, 20)
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 16)
-                        }
-                        .background(
-                            UnevenRoundedRectangle(
-                                topLeadingRadius: 24,
-                                bottomLeadingRadius: 0,
-                                bottomTrailingRadius: 0,
-                                topTrailingRadius: 24
-                            )
-                            .fill(Color(.systemBackground))
-                            .shadow(color: .black.opacity(0.15), radius: 12, y: -4)
-                        )
-                        .offset(y: -40)
-                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .tint(.blue)
             }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 40)
         }
-        .ignoresSafeArea(edges: .bottom)
-        .toolbarBackground(.hidden, for: .navigationBar)
+        .navigationTitle(departure.label)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showingEditor = true
-                } label: {
-                    Image(systemName: "pencil")
+                HStack(spacing: 16) {
+                    Toggle("", isOn: $departure.isEnabled)
+                        .labelsHidden()
+                        .tint(.orange)
+
+                    Button {
+                        showingEditor = true
+                    } label: {
+                        Image(systemName: "pencil")
+                    }
                 }
             }
         }
@@ -203,11 +214,23 @@ struct DepartureDetailView: View {
     // MARK: - Helper Views
 
     @ViewBuilder
-    private func sectionHeader(_ title: String) -> some View {
-        Text(title.uppercased())
-            .font(.caption)
-            .fontWeight(.semibold)
-            .foregroundStyle(.secondary)
+    private func narrativeBlock(phrase: String, emphasis: String, isTime: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(phrase)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            if isTime {
+                Text(emphasis)
+                    .font(.system(size: 42, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+            } else {
+                Text(emphasis)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+            }
+        }
     }
 
     // MARK: - Actions
