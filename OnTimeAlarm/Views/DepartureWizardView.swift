@@ -52,9 +52,11 @@ struct DepartureWizardView: View {
     
     // Sheets
     @State private var showingAlarmSettings: Bool = false
-    @State private var showingRepeatSelection: Bool = false
     @State private var showingPrepSelection: Bool = false
-    @State private var showingTimePicker: Bool = false
+
+    // Inline expansion
+    @State private var isTimePickerExpanded: Bool = false
+    @State private var isRepeatPickerExpanded: Bool = false
     
     private var isEditing: Bool { departure != nil }
     
@@ -127,17 +129,9 @@ struct DepartureWizardView: View {
             .sheet(isPresented: $showingAlarmSettings) {
                 AlarmSettingsSheet(hasPreWakeAlarm: $hasPreWakeAlarm)
             }
-            .sheet(isPresented: $showingRepeatSelection) {
-                repeatSettingsSheet
-                .presentationDetents([.fraction(0.3)])
-            }
             .sheet(isPresented: $showingPrepSelection) {
                 prepSettingsSheet
                 .presentationDetents([.fraction(0.5)])
-            }
-            .sheet(isPresented: $showingTimePicker) {
-                timePickerSheet
-                .presentationDetents([.fraction(0.4)])
             }
             .onChange(of: fromCoordinate?.latitude) { _, _ in
                 calculateTravelTime()
@@ -245,24 +239,95 @@ struct DepartureWizardView: View {
                 .font(.title3)
                 .foregroundStyle(.secondary)
 
-            chipButton(
-                icon: "clock.fill",
-                iconColor: .orange,
-                title: timeFormatter.string(from: arrivalTime),
-                action: { showingTimePicker = true }
-            )
+            // Expandable inline time picker
+            VStack(spacing: 0) {
+                // Header row (always visible)
+                HStack(spacing: 12) {
+                    Image(systemName: "clock.fill")
+                        .font(.title2)
+                        .foregroundStyle(.orange)
+                        .frame(width: 32)
+
+                    Text(timeFormatter.string(from: arrivalTime))
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.down")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                        .rotationEffect(.degrees(isTimePickerExpanded ? 180 : 0))
+                }
+                .padding(.vertical, 14)
+                .padding(.horizontal, 16)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.snappy) {
+                        isTimePickerExpanded.toggle()
+                    }
+                }
+
+                // Expandable picker
+                if isTimePickerExpanded {
+                    DatePicker(
+                        "",
+                        selection: $arrivalTime,
+                        displayedComponents: .hourAndMinute
+                    )
+                    .datePickerStyle(.wheel)
+                    .labelsHidden()
+                    .padding(.bottom, 8)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
 
             Text("repeating")
                 .font(.title3)
                 .foregroundStyle(.secondary)
-            
-            chipButton(
-                icon: "repeat",
-                iconColor: repeatDays.isEmpty ? .gray : .orange,
-                title: repeatSummary,
-                action: { showingRepeatSelection = true }
-            )
-            
+
+            // Expandable inline repeat picker
+            VStack(spacing: 0) {
+                // Header row (always visible)
+                HStack(spacing: 12) {
+                    Image(systemName: "repeat")
+                        .font(.title2)
+                        .foregroundStyle(repeatDays.isEmpty ? .gray : .orange)
+                        .frame(width: 32)
+
+                    Text(repeatSummary)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.down")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                        .rotationEffect(.degrees(isRepeatPickerExpanded ? 180 : 0))
+                }
+                .padding(.vertical, 14)
+                .padding(.horizontal, 16)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.snappy) {
+                        isRepeatPickerExpanded.toggle()
+                    }
+                }
+
+                // Expandable day selector
+                if isRepeatPickerExpanded {
+                    repeatDaysStrip
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 16)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+
             Text("with")
                 .font(.title3)
                 .foregroundStyle(.secondary)
@@ -279,29 +344,6 @@ struct DepartureWizardView: View {
     }
     
     @ViewBuilder
-    private var repeatSettingsSheet: some View {
-        VStack(spacing: 24) {
-            Text("Repeat")
-                .font(.headline)
-                .padding(.top, 24)
-            
-            repeatDaysStrip
-            
-            Spacer()
-            
-            Button("Done") {
-                showingRepeatSelection = false
-            }
-            .font(.headline)
-            .buttonStyle(.borderedProminent)
-            .tint(.orange)
-            .controlSize(.large)
-            .padding(.horizontal)
-            .padding(.bottom)
-        }
-    }
-    
-    @ViewBuilder
     private var prepSettingsSheet: some View {
         VStack(spacing: 24) {
             Text("Prep Time")
@@ -314,35 +356,6 @@ struct DepartureWizardView: View {
 
             Button("Done") {
                 showingPrepSelection = false
-            }
-            .font(.headline)
-            .buttonStyle(.borderedProminent)
-            .tint(.orange)
-            .controlSize(.large)
-            .padding(.horizontal)
-            .padding(.bottom)
-        }
-    }
-
-    @ViewBuilder
-    private var timePickerSheet: some View {
-        VStack(spacing: 24) {
-            Text("Arrival Time")
-                .font(.headline)
-                .padding(.top, 24)
-
-            DatePicker(
-                "",
-                selection: $arrivalTime,
-                displayedComponents: .hourAndMinute
-            )
-            .datePickerStyle(.wheel)
-            .labelsHidden()
-
-            Spacer()
-
-            Button("Done") {
-                showingTimePicker = false
             }
             .font(.headline)
             .buttonStyle(.borderedProminent)
