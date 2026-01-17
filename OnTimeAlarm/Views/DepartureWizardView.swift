@@ -53,6 +53,15 @@ struct DepartureWizardView: View {
     @State private var wakeSoundId: String? = nil
     @State private var leaveSoundId: String? = nil
 
+    // Sound type selection (sound vs voice message)
+    enum AlarmSoundType: String, CaseIterable {
+        case sound = "Sound"
+        case voice = "Voice Message"
+    }
+    @State private var preWakeSoundType: AlarmSoundType = .sound
+    @State private var wakeSoundType: AlarmSoundType = .sound
+    @State private var leaveSoundType: AlarmSoundType = .sound
+
     // Repeat Days (1 = Sunday, 2 = Monday, ..., 7 = Saturday)
     @State private var repeatDays: Set<Int> = []
 
@@ -65,6 +74,12 @@ struct DepartureWizardView: View {
     @State private var isPreWakeSoundExpanded: Bool = false
     @State private var isWakeSoundExpanded: Bool = false
     @State private var isLeaveSoundExpanded: Bool = false
+
+    // Sound confirmation state (which sound is waiting for confirm tap)
+    @State private var confirmingSoundId: String? = nil
+
+    // Sound category selection
+    @State private var selectedSoundCategory: SoundManager.SoundCategory = .iOS
 
     // Custom prep time input
     @State private var isCustomPrepTime: Bool = false
@@ -620,7 +635,7 @@ struct DepartureWizardView: View {
     @ViewBuilder
     private var preWakeAlarmSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("I'd like a")
+            Text(hasPreWakeAlarm ? "I'd like a" : "I would not like a")
                 .font(.title3)
                 .foregroundStyle(.secondary)
 
@@ -652,16 +667,12 @@ struct DepartureWizardView: View {
                     .font(.title3)
                     .foregroundStyle(.secondary)
 
-                soundChipButton(
+                inlineSoundPicker(
                     soundId: $preWakeSoundId,
+                    soundType: $preWakeSoundType,
                     isExpanded: $isPreWakeSoundExpanded,
                     accentColor: .blue
                 )
-
-                if isPreWakeSoundExpanded {
-                    soundPickerList(selection: $preWakeSoundId, isExpanded: $isPreWakeSoundExpanded)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                }
             }
         }
     }
@@ -698,16 +709,12 @@ struct DepartureWizardView: View {
                 .font(.title3)
                 .foregroundStyle(.secondary)
 
-            soundChipButton(
+            inlineSoundPicker(
                 soundId: $wakeSoundId,
+                soundType: $wakeSoundType,
                 isExpanded: $isWakeSoundExpanded,
                 accentColor: .orange
             )
-
-            if isWakeSoundExpanded {
-                soundPickerList(selection: $wakeSoundId, isExpanded: $isWakeSoundExpanded)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-            }
         }
     }
 
@@ -715,7 +722,7 @@ struct DepartureWizardView: View {
     @ViewBuilder
     private var leaveAlarmSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Plus a")
+            Text(hasLeaveAlarm ? "Plus a" : "But not a")
                 .font(.title3)
                 .foregroundStyle(.secondary)
 
@@ -747,99 +754,219 @@ struct DepartureWizardView: View {
                     .font(.title3)
                     .foregroundStyle(.secondary)
 
-                soundChipButton(
+                inlineSoundPicker(
                     soundId: $leaveSoundId,
+                    soundType: $leaveSoundType,
                     isExpanded: $isLeaveSoundExpanded,
                     accentColor: .blue
                 )
-
-                if isLeaveSoundExpanded {
-                    soundPickerList(selection: $leaveSoundId, isExpanded: $isLeaveSoundExpanded)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                }
             }
         }
     }
 
-    // MARK: Sound Chip Button
+    // MARK: Inline Sound Picker
     @ViewBuilder
-    private func soundChipButton(
+    private func inlineSoundPicker(
         soundId: Binding<String?>,
+        soundType: Binding<AlarmSoundType>,
         isExpanded: Binding<Bool>,
         accentColor: Color
     ) -> some View {
-        Button {
-            withAnimation(.snappy) {
-                isExpanded.wrappedValue.toggle()
-            }
-        } label: {
-            HStack(spacing: 8) {
-                Text(SoundManager.shared.displayName(for: soundId.wrappedValue))
+        VStack(spacing: 0) {
+            // Header row (always visible)
+            HStack(spacing: 12) {
+                Image(systemName: "music.note")
+                    .font(.title2)
+                    .foregroundStyle(accentColor)
+                    .frame(width: 32)
+
+                Text(soundType.wrappedValue == .voice ? "Voice Message" : SoundManager.shared.displayName(for: soundId.wrappedValue))
                     .font(.headline)
+                    .foregroundStyle(.primary)
+
+                Spacer()
 
                 Image(systemName: "chevron.down")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.tertiary)
                     .rotationEffect(.degrees(isExpanded.wrappedValue ? 180 : 0))
             }
+            .padding(.vertical, 14)
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .contentShape(Rectangle())
+            .onTapGesture {
+                withAnimation(.snappy) {
+                    isExpanded.wrappedValue.toggle()
+                    // Reset confirming state when opening/closing
+                    confirmingSoundId = nil
+                }
+            }
+
+            // Expanded content
+            if isExpanded.wrappedValue {
+                VStack(spacing: 16) {
+                    // Type selector chips (Sound / Voice Message)
+                    HStack(spacing: 0) {
+                        ForEach(AlarmSoundType.allCases, id: \.rawValue) { type in
+                            Button {
+                                withAnimation(.snappy) { soundType.wrappedValue = type }
+                            } label: {
+                                Text(type.rawValue)
+                                    .font(.subheadline.weight(soundType.wrappedValue == type ? .semibold : .regular))
+                                    .foregroundStyle(soundType.wrappedValue == type ? .white : .primary)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 16)
+                                    .background(soundType.wrappedValue == type ? accentColor : Color.clear)
+                                    .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+
+                    // Sound content or Voice placeholder
+                    if soundType.wrappedValue == .sound {
+                        // Category selector chips (iOS / Motivational / Holiday)
+                        HStack(spacing: 0) {
+                            ForEach(SoundManager.SoundCategory.allCases) { category in
+                                Button {
+                                    withAnimation(.snappy) { selectedSoundCategory = category }
+                                } label: {
+                                    Text(category.displayName)
+                                        .font(.subheadline.weight(selectedSoundCategory == category ? .semibold : .regular))
+                                        .foregroundStyle(selectedSoundCategory == category ? .white : (category.isAvailable ? .primary : .secondary))
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal, 16)
+                                        .background(selectedSoundCategory == category ? accentColor : Color.clear)
+                                        .clipShape(Capsule())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+
+                        // Sound grid for selected category
+                        if selectedSoundCategory.isAvailable {
+                            soundGrid(
+                                sounds: selectedSoundCategory.sounds,
+                                selection: soundId,
+                                isExpanded: isExpanded,
+                                accentColor: accentColor
+                            )
+                        } else {
+                            // Placeholder for unavailable categories
+                            HStack {
+                                Image(systemName: "speaker.slash")
+                                    .foregroundStyle(.secondary)
+                                Text("Coming soon")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 20)
+                            .background(Color(.systemGray5))
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .padding(.horizontal, 16)
+                        }
+                    } else {
+                        // Voice Message placeholder
+                        HStack {
+                            Image(systemName: "mic.fill")
+                                .foregroundStyle(.secondary)
+                            Text("Coming soon")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                        .background(Color(.systemGray5))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .padding(.horizontal, 16)
+                    }
+                }
+                .padding(.bottom, 16)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
-        .buttonStyle(.plain)
+        .background(Color(.systemGray6))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
-    // MARK: Sound Picker List
+    // MARK: Sound Grid
     @ViewBuilder
-    private func soundPickerList(selection: Binding<String?>, isExpanded: Binding<Bool>) -> some View {
-        VStack(spacing: 8) {
-            // Default option
-            soundRow(name: "Default", identifier: nil, selection: selection, isExpanded: isExpanded)
-
-            ForEach(SoundManager.NotificationSoundType.allCases, id: \.rawValue) { sound in
-                soundRow(
+    private func soundGrid(
+        sounds: [SoundManager.NotificationSoundType],
+        selection: Binding<String?>,
+        isExpanded: Binding<Bool>,
+        accentColor: Color
+    ) -> some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+            ForEach(sounds) { sound in
+                soundGridItem(
                     name: sound.displayName,
                     identifier: sound.rawValue,
                     selection: selection,
-                    isExpanded: isExpanded
+                    isExpanded: isExpanded,
+                    accentColor: accentColor
                 )
             }
         }
-        .padding(.vertical, 4)
+        .padding(.horizontal, 16)
     }
 
     @ViewBuilder
-    private func soundRow(
+    private func soundGridItem(
         name: String,
-        identifier: String?,
+        identifier: String,
         selection: Binding<String?>,
-        isExpanded: Binding<Bool>
+        isExpanded: Binding<Bool>,
+        accentColor: Color
     ) -> some View {
+        let isSelected = selection.wrappedValue == identifier
+        let isConfirming = confirmingSoundId == identifier
+
         Button {
-            selection.wrappedValue = identifier
-            if let id = identifier {
-                SoundManager.shared.previewSound(id)
-            }
-            withAnimation(.snappy) {
-                isExpanded.wrappedValue = false
+            if isConfirming {
+                // Second tap: confirm and close
+                selection.wrappedValue = identifier
+                confirmingSoundId = nil
+                withAnimation(.snappy) {
+                    isExpanded.wrappedValue = false
+                }
+            } else {
+                // First tap: preview sound and enter confirm state
+                confirmingSoundId = identifier
+                SoundManager.shared.previewSound(identifier)
             }
         } label: {
             HStack {
                 Text(name)
                     .font(.subheadline)
+                    .foregroundStyle(isConfirming || isSelected ? .white : .primary)
 
                 Spacer()
 
-                if selection.wrappedValue == identifier {
+                if isConfirming {
+                    // Show "?" to indicate tap again to confirm
+                    Image(systemName: "questionmark")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white)
+                } else if isSelected {
                     Image(systemName: "checkmark")
-                        .foregroundStyle(.orange)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.white)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(isConfirming ? accentColor.opacity(0.7) : (isSelected ? accentColor : Color(.systemGray5)))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(isConfirming ? accentColor : Color.clear, lineWidth: 2)
+            )
         }
         .buttonStyle(.plain)
     }
