@@ -57,6 +57,11 @@ struct DepartureWizardView: View {
     @State private var isTimePickerExpanded: Bool = false
     @State private var isRepeatPickerExpanded: Bool = false
     @State private var isPrepPickerExpanded: Bool = false
+
+    // Custom prep time input
+    @State private var isCustomPrepTime: Bool = false
+    @State private var customPrepMinutes: String = ""
+    @FocusState private var isCustomPrepFocused: Bool
     
     private var isEditing: Bool { departure != nil }
     
@@ -374,29 +379,93 @@ struct DepartureWizardView: View {
     
     @ViewBuilder
     private var prepDurationBubbles: some View {
-        let steps = Array(stride(from: 10, through: 60, by: 5)) + [75, 90]
-        
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 12)], spacing: 12) {
-            ForEach(steps, id: \.self) { minutes in
-                let duration = TimeInterval(minutes * 60)
-                let isSelected = prepDuration == duration
-                
+        let steps = [5] + Array(stride(from: 10, through: 60, by: 5)) + [75, 90]
+        let isCustomSelected = isCustomPrepTime || !steps.contains(Int(prepDuration / 60))
+
+        VStack(spacing: 12) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 50), spacing: 12)], spacing: 12) {
+                ForEach(steps, id: \.self) { minutes in
+                    let duration = TimeInterval(minutes * 60)
+                    let isSelected = !isCustomSelected && prepDuration == duration
+
+                    Button {
+                        withAnimation(.snappy) {
+                            isCustomPrepTime = false
+                            prepDuration = duration
+                        }
+                    } label: {
+                        Text("\(minutes)")
+                            .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                            .foregroundStyle(isSelected ? .white : .primary)
+                            .frame(width: 48, height: 48)
+                            .background(isSelected ? Color.orange : Color(.systemGray5))
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                // Custom "+" button
                 Button {
                     withAnimation(.snappy) {
-                        prepDuration = duration
+                        isCustomPrepTime = true
+                        customPrepMinutes = ""
+                        isCustomPrepFocused = true
                     }
                 } label: {
-                    Text("\(minutes)")
-                        .font(.subheadline.weight(isSelected ? .semibold : .regular))
-                        .foregroundStyle(isSelected ? .white : .primary)
+                    Image(systemName: isCustomSelected ? "pencil" : "plus")
+                        .font(.subheadline.weight(isCustomSelected ? .semibold : .regular))
+                        .foregroundStyle(isCustomSelected ? .white : .primary)
                         .frame(width: 48, height: 48)
-                        .background(isSelected ? Color.orange : Color(.systemGray6))
+                        .background(isCustomSelected ? Color.orange : Color(.systemGray5))
                         .clipShape(Circle())
                 }
                 .buttonStyle(.plain)
             }
+
+            // Custom input field
+            if isCustomPrepTime {
+                HStack(spacing: 8) {
+                    TextField("", text: $customPrepMinutes)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.center)
+                        .font(.headline)
+                        .frame(width: 60)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(Color(.systemGray5))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .focused($isCustomPrepFocused)
+                        .onSubmit {
+                            applyCustomPrepTime()
+                        }
+
+                    Text("minutes")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    Spacer()
+
+                    Button("Set") {
+                        applyCustomPrepTime()
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.orange)
+                }
+                .padding(.top, 4)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
-        .padding(.horizontal, 24)
+    }
+
+    private func applyCustomPrepTime() {
+        if let minutes = Int(customPrepMinutes), minutes > 0 {
+            withAnimation(.snappy) {
+                prepDuration = TimeInterval(minutes * 60)
+                isCustomPrepFocused = false
+                isCustomPrepTime = false
+                isPrepPickerExpanded = false
+            }
+        }
     }
     
     @ViewBuilder
