@@ -33,10 +33,15 @@ struct InlineLocationField: View {
             mainFieldContent
 
             if isExpanded {
+                Divider()
+                    .padding(.leading, 60)
+
                 dropdownContent
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
+        .background(Color(.systemGray6))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
         .animation(.easeInOut(duration: 0.2), value: isExpanded)
         .onChange(of: isFocused) { _, focused in
             if focused {
@@ -111,8 +116,6 @@ struct InlineLocationField: View {
         }
         .padding(.vertical, 14)
         .padding(.horizontal, 16)
-        .background(Color(.systemGray6))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 
     // MARK: - Dropdown
@@ -202,12 +205,6 @@ struct InlineLocationField: View {
                 .padding(.horizontal, 16)
             }
         }
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
-        )
-        .padding(.top, 4)
     }
 
     // MARK: - Actions
