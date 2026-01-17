@@ -27,8 +27,8 @@ final class AlarmKitManager: ObservableObject {
     private init() {
         // Check initial authorization state
         if #available(iOS 26.0, *) {
-            Task {
-                await updateAuthorizationState()
+            Task { @MainActor in
+                updateAuthorizationState()
             }
         }
     }
@@ -56,7 +56,7 @@ final class AlarmKitManager: ObservableObject {
     }
 
     @available(iOS 26.0, *)
-    private func updateAuthorizationState() async {
+    private func updateAuthorizationState() {
         let manager = AlarmManager.shared
         isAuthorized = (manager.authorizationState == .authorized)
     }
@@ -220,7 +220,7 @@ final class AlarmKitManager: ObservableObject {
 
         // Schedule with or without stop intent
         if let stopIntent = stopIntent {
-            try await manager.schedule(
+            _ = try await manager.schedule(
                 id: id,
                 configuration: .alarm(
                     schedule: schedule,
@@ -229,7 +229,7 @@ final class AlarmKitManager: ObservableObject {
                 )
             )
         } else {
-            try await manager.schedule(
+            _ = try await manager.schedule(
                 id: id,
                 configuration: .alarm(
                     schedule: schedule,
