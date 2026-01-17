@@ -52,11 +52,11 @@ struct DepartureWizardView: View {
     
     // Sheets
     @State private var showingAlarmSettings: Bool = false
-    @State private var showingPrepSelection: Bool = false
 
     // Inline expansion
     @State private var isTimePickerExpanded: Bool = false
     @State private var isRepeatPickerExpanded: Bool = false
+    @State private var isPrepPickerExpanded: Bool = false
     
     private var isEditing: Bool { departure != nil }
     
@@ -128,10 +128,6 @@ struct DepartureWizardView: View {
             }
             .sheet(isPresented: $showingAlarmSettings) {
                 AlarmSettingsSheet(hasPreWakeAlarm: $hasPreWakeAlarm)
-            }
-            .sheet(isPresented: $showingPrepSelection) {
-                prepSettingsSheet
-                .presentationDetents([.fraction(0.5)])
             }
             .onChange(of: fromCoordinate?.latitude) { _, _ in
                 calculateTravelTime()
@@ -331,41 +327,51 @@ struct DepartureWizardView: View {
             Text("with")
                 .font(.title3)
                 .foregroundStyle(.secondary)
-            
-            chipButton(
-                icon: "clock.badge.checkmark.fill",
-                iconColor: .orange,
-                title: "\(Int(prepDuration / 60)) min to get ready",
-                action: { showingPrepSelection = true }
-            )
+
+            // Expandable inline prep time picker
+            VStack(spacing: 0) {
+                // Header row (always visible)
+                HStack(spacing: 12) {
+                    Image(systemName: "clock.badge.checkmark.fill")
+                        .font(.title2)
+                        .foregroundStyle(.orange)
+                        .frame(width: 32)
+
+                    Text("\(Int(prepDuration / 60)) min to get ready")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.down")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                        .rotationEffect(.degrees(isPrepPickerExpanded ? 180 : 0))
+                }
+                .padding(.vertical, 14)
+                .padding(.horizontal, 16)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    withAnimation(.snappy) {
+                        isPrepPickerExpanded.toggle()
+                    }
+                }
+
+                // Expandable prep time bubbles
+                if isPrepPickerExpanded {
+                    prepDurationBubbles
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 16)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
     }
     
-    @ViewBuilder
-    private var prepSettingsSheet: some View {
-        VStack(spacing: 24) {
-            Text("Prep Time")
-                .font(.headline)
-                .padding(.top, 24)
-
-            prepDurationBubbles
-
-            Spacer()
-
-            Button("Done") {
-                showingPrepSelection = false
-            }
-            .font(.headline)
-            .buttonStyle(.borderedProminent)
-            .tint(.orange)
-            .controlSize(.large)
-            .padding(.horizontal)
-            .padding(.bottom)
-        }
-    }
-
     @ViewBuilder
     private var prepDurationBubbles: some View {
         let steps = Array(stride(from: 10, through: 60, by: 5)) + [75, 90]
