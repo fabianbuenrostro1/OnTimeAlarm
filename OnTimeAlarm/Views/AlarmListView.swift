@@ -63,6 +63,6 @@ struct AlarmListView: View {
 
 #Preview {
     AlarmListView()
-        .modelContainer(for: [Departure.self, Preferences.self], inMemory: true)
+        .modelContainer(for: [Departure.self], inMemory: true)
         .environment(LocationManager())
 }

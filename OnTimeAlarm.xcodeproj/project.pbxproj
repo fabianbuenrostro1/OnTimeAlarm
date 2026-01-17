@@ -3,18 +3,15 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		01D839797784AB12D2E37434 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B67786F35965226D316F0B /* PreferencesView.swift */; };
 		11EAB5FF451D3F2CC572A371 /* DepartureDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D1F5D42BCC12477CA20703 /* DepartureDetailView.swift */; };
 		25F520E9E6714B5C9961FC28 /* OnTimeAlarmApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B07BCBCD4CC327E443EAA179 /* OnTimeAlarmApp.swift */; };
 		26D4EB16AF0B2E4F5264481E /* AlarmListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FADDBDDFDAEC7123C417A9E3 /* AlarmListView.swift */; };
-		2EC8F763F6A7FF3808B7627C /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6C3050195A2F233F530AFE0 /* MainTabView.swift */; };
 		306854E41A7C28DFFB46D5FF /* TravelTimeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59821B515689CD008DA25C5B /* TravelTimeService.swift */; };
 		3584035B89823E7DAED25A19 /* AlarmRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBF623B085EDE0F66257C8 /* AlarmRowView.swift */; };
-		39893AE3B0BC437AF3B6AE7A /* VoiceAnnouncementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8CDEFE100BAB9EC2656C527 /* VoiceAnnouncementService.swift */; };
 		3D7ABD5AEF80C49315FA2374 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CCBF702C7CA8403572AEC52 /* LocationManager.swift */; };
 		4A56013B7FEEBAE70062A7AD /* AlarmKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57211AAB611BE6203A07F680 /* AlarmKitManager.swift */; };
 		547C290D3CB99D68F0FE0408 /* MapPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7529CB3FB337E37EE376F570 /* MapPreviewView.swift */; };
@@ -29,12 +26,10 @@
 		BCEE749ABED14C389A1E3AE8 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8A4936316FC2DAEB1653B44 /* WeatherService.swift */; };
 		E9988B2978B9CD75FEBF14DC /* InlineLocationField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77FD3EEFED82C255DBC5D521 /* InlineLocationField.swift */; };
 		EC22FB9542796A5D8283B74C /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A31552A5B438BE24CCED42 /* EmptyStateView.swift */; };
-		F89DBA2455636FF891FC234A /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACF7479D8B79978593B55992 /* Preferences.swift */; };
 		FA8B2B14F079399BBA6E848E /* DismissAlarmIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCD4F8927815D02E2DFA7F5 /* DismissAlarmIntent.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		04B67786F35965226D316F0B /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		0C98AEBC096AEF0A64A0AAE7 /* Departure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Departure.swift; sourceTree = "<group>"; };
 		22A31552A5B438BE24CCED42 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		26EB9E3019A0F4FAC5ECFDD7 /* EmojiPickerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiPickerButton.swift; sourceTree = "<group>"; };
@@ -44,21 +39,18 @@
 		57211AAB611BE6203A07F680 /* AlarmKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmKitManager.swift; sourceTree = "<group>"; };
 		59821B515689CD008DA25C5B /* TravelTimeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelTimeService.swift; sourceTree = "<group>"; };
 		5C8190A45D1AFA6A181161D0 /* LocationSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchService.swift; sourceTree = "<group>"; };
-		6462AA348A7FD628ED37DD83 /* OnTimeAlarm.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OnTimeAlarm.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6462AA348A7FD628ED37DD83 /* OnTimeAlarm.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OnTimeAlarm.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7529CB3FB337E37EE376F570 /* MapPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapPreviewView.swift; sourceTree = "<group>"; };
 		77FD3EEFED82C255DBC5D521 /* InlineLocationField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineLocationField.swift; sourceTree = "<group>"; };
 		818132E5C54FA7C506016517 /* PrepTimeMusicManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrepTimeMusicManager.swift; sourceTree = "<group>"; };
 		8505103E8A8F6CF881AE5A57 /* OnTimeAlarm.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OnTimeAlarm.entitlements; sourceTree = "<group>"; };
 		97EEF29135637BDF9FCEDB7A /* DepartureWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureWizardView.swift; sourceTree = "<group>"; };
-		ACF7479D8B79978593B55992 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		B07BCBCD4CC327E443EAA179 /* OnTimeAlarmApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnTimeAlarmApp.swift; sourceTree = "<group>"; };
 		B6D1F5D42BCC12477CA20703 /* DepartureDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureDetailView.swift; sourceTree = "<group>"; };
 		B8C2F1AB68748CE69EE057CF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C8A4936316FC2DAEB1653B44 /* WeatherService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherService.swift; sourceTree = "<group>"; };
-		D6C3050195A2F233F530AFE0 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		EDCD4F8927815D02E2DFA7F5 /* DismissAlarmIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DismissAlarmIntent.swift; sourceTree = "<group>"; };
 		F05D665D3FE04DC9FB53724F /* DepartureCardComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureCardComponents.swift; sourceTree = "<group>"; };
-		F8CDEFE100BAB9EC2656C527 /* VoiceAnnouncementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAnnouncementService.swift; sourceTree = "<group>"; };
 		FADDBDDFDAEC7123C417A9E3 /* AlarmListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmListView.swift; sourceTree = "<group>"; };
 		FD834537C082148EE9D02EC3 /* TimeCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeCalculator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -73,7 +65,6 @@
 				818132E5C54FA7C506016517 /* PrepTimeMusicManager.swift */,
 				4C584C3E52841623076C2730 /* SoundManager.swift */,
 				59821B515689CD008DA25C5B /* TravelTimeService.swift */,
-				F8CDEFE100BAB9EC2656C527 /* VoiceAnnouncementService.swift */,
 				C8A4936316FC2DAEB1653B44 /* WeatherService.swift */,
 			);
 			path = Services;
@@ -83,7 +74,6 @@
 			isa = PBXGroup;
 			children = (
 				0C98AEBC096AEF0A64A0AAE7 /* Departure.swift */,
-				ACF7479D8B79978593B55992 /* Preferences.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -98,9 +88,7 @@
 				97EEF29135637BDF9FCEDB7A /* DepartureWizardView.swift */,
 				26EB9E3019A0F4FAC5ECFDD7 /* EmojiPickerButton.swift */,
 				22A31552A5B438BE24CCED42 /* EmptyStateView.swift */,
-				D6C3050195A2F233F530AFE0 /* MainTabView.swift */,
 				7529CB3FB337E37EE376F570 /* MapPreviewView.swift */,
-				04B67786F35965226D316F0B /* PreferencesView.swift */,
 				8DD8D620F07B213976DBD9C1 /* Components */,
 			);
 			path = Views;
@@ -200,7 +188,6 @@
 			);
 			mainGroup = A8004E6DC2C395E350A6B6B5;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -227,16 +214,12 @@
 				E9988B2978B9CD75FEBF14DC /* InlineLocationField.swift in Sources */,
 				3D7ABD5AEF80C49315FA2374 /* LocationManager.swift in Sources */,
 				B906B3F566186C6B44700C5E /* LocationSearchService.swift in Sources */,
-				2EC8F763F6A7FF3808B7627C /* MainTabView.swift in Sources */,
 				547C290D3CB99D68F0FE0408 /* MapPreviewView.swift in Sources */,
 				25F520E9E6714B5C9961FC28 /* OnTimeAlarmApp.swift in Sources */,
-				F89DBA2455636FF891FC234A /* Preferences.swift in Sources */,
-				01D839797784AB12D2E37434 /* PreferencesView.swift in Sources */,
 				787D7EAAB8FC494DE2193D88 /* PrepTimeMusicManager.swift in Sources */,
 				790EDD24F4D90907694501A4 /* SoundManager.swift in Sources */,
 				7228ED227C6E9F418AA10A3D /* TimeCalculator.swift in Sources */,
 				306854E41A7C28DFFB46D5FF /* TravelTimeService.swift in Sources */,
-				39893AE3B0BC437AF3B6AE7A /* VoiceAnnouncementService.swift in Sources */,
 				BCEE749ABED14C389A1E3AE8 /* WeatherService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -250,6 +233,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZSZ62LWC22;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OnTimeAlarm/Info.plist;
 				INFOPLIST_GENERATION_MODE = GeneratedFile;
@@ -396,6 +380,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZSZ62LWC22;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OnTimeAlarm/Info.plist;
 				INFOPLIST_GENERATION_MODE = GeneratedFile;

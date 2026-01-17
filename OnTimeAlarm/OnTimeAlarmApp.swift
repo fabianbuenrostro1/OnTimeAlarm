@@ -7,7 +7,7 @@ struct OnTimeAlarmApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainTabView()
+            AlarmListView()
                 .environment(locationManager)
                 .task {
                     // Request location permission
@@ -21,6 +21,6 @@ struct OnTimeAlarmApp: App {
                     }
                 }
         }
-        .modelContainer(for: [Departure.self, Preferences.self])
+        .modelContainer(for: [Departure.self])
     }
 }
