@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import MapKit
 import CoreLocation
+import MusicKit
 
 struct DepartureWizardView: View {
     @Environment(\.modelContext) private var modelContext
@@ -80,6 +81,14 @@ struct DepartureWizardView: View {
 
     // Sound category selection
     @State private var selectedSoundCategory: SoundManager.SoundCategory = .iOS
+
+    // Prep time music selection
+    @State private var prepTimeMediaType: PrepTimeMediaType = .silence
+    @State private var prepTimeMediaId: String? = nil
+    @State private var prepTimeMediaName: String? = nil
+    @State private var prepTimeMediaArtworkURL: String? = nil
+    @State private var isPrepTimeMusicExpanded: Bool = false
+    @State private var confirmingPlaylistId: String? = nil
 
     // Custom prep time input
     @State private var isCustomPrepTime: Bool = false
@@ -392,11 +401,283 @@ struct DepartureWizardView: View {
             }
             .background(Color(.systemGray6))
             .clipShape(RoundedRectangle(cornerRadius: 14))
+
+            Text("During my prep time, I'd like")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+
+            // Prep time music picker
+            prepTimeMusicPicker
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
     }
-    
+
+    // MARK: - Prep Time Music Picker
+    @ViewBuilder
+    private var prepTimeMusicPicker: some View {
+        VStack(spacing: 0) {
+            // Header row (always visible)
+            HStack(spacing: 12) {
+                Image(systemName: prepTimeMediaType == .silence ? "speaker.slash" : "music.note")
+                    .font(.title2)
+                    .foregroundStyle(prepTimeMediaType == .silence ? .gray : .purple)
+                    .frame(width: 32)
+
+                Text(prepTimeMediaType == .silence ? "Silence" : (prepTimeMediaName ?? "Select Music"))
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                Image(systemName: "chevron.down")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .rotationEffect(.degrees(isPrepTimeMusicExpanded ? 180 : 0))
+            }
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                withAnimation(.snappy) {
+                    isPrepTimeMusicExpanded.toggle()
+                    confirmingPlaylistId = nil
+                }
+            }
+
+            // Expanded content
+            if isPrepTimeMusicExpanded {
+                VStack(spacing: 16) {
+                    // Type selector chips (Silence / Apple Music)
+                    HStack(spacing: 0) {
+                        ForEach(PrepTimeMediaType.allCases, id: \.rawValue) { type in
+                            Button {
+                                withAnimation(.snappy) {
+                                    prepTimeMediaType = type
+                                    if type == .silence {
+                                        prepTimeMediaId = nil
+                                        prepTimeMediaName = nil
+                                        prepTimeMediaArtworkURL = nil
+                                    } else {
+                                        // Request authorization when Apple Music is selected
+                                        Task {
+                                            await PrepTimeMusicManager.shared.requestAuthorization()
+                                        }
+                                    }
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: type.icon)
+                                        .font(.caption)
+                                    Text(type.displayName)
+                                        .font(.subheadline.weight(prepTimeMediaType == type ? .semibold : .regular))
+                                }
+                                .foregroundStyle(prepTimeMediaType == type ? .white : .primary)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 16)
+                                .background(prepTimeMediaType == type ? Color.purple : Color.clear)
+                                .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+
+                    // Content based on selection
+                    if prepTimeMediaType == .appleMusic {
+                        prepTimeMusicContent
+                    } else {
+                        // Silence selected - show info
+                        HStack {
+                            Image(systemName: "speaker.slash")
+                                .foregroundStyle(.secondary)
+                            Text("No music will play during prep time")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                        .background(Color(.systemGray5))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .padding(.horizontal, 16)
+                    }
+                }
+                .padding(.bottom, 16)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .background(Color(.systemGray6))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    @ViewBuilder
+    private var prepTimeMusicContent: some View {
+        let musicManager = PrepTimeMusicManager.shared
+
+        VStack(spacing: 12) {
+            // Authorization check
+            if musicManager.authorizationStatus == .notDetermined {
+                Button {
+                    Task {
+                        await musicManager.requestAuthorization()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "lock.shield")
+                        Text("Grant Music Access")
+                    }
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.white)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.purple)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .padding(.horizontal, 16)
+            } else if musicManager.authorizationStatus == .denied {
+                VStack(spacing: 8) {
+                    Image(systemName: "lock.slash")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                    Text("Music access denied")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text("Enable in Settings → Privacy → Media & Apple Music")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+                .background(Color(.systemGray5))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .padding(.horizontal, 16)
+            } else if musicManager.authorizationStatus == .authorized {
+                // Show playlists
+                if musicManager.isLoadingPlaylists {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                } else if musicManager.userPlaylists.isEmpty {
+                    VStack(spacing: 8) {
+                        Image(systemName: "music.note.list")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                        Text("No playlists found")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Button("Refresh") {
+                            Task {
+                                try? await musicManager.fetchPlaylists()
+                            }
+                        }
+                        .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .background(Color(.systemGray5))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .padding(.horizontal, 16)
+                } else {
+                    // Playlist grid
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Your Playlists")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 16)
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(musicManager.userPlaylists, id: \.id) { playlist in
+                                    playlistItem(playlist)
+                                }
+                            }
+                            .padding(.horizontal, 16)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func playlistItem(_ playlist: Playlist) -> some View {
+        let isSelected = prepTimeMediaId == playlist.id.rawValue
+        let isConfirming = confirmingPlaylistId == playlist.id.rawValue
+
+        Button {
+            if isConfirming {
+                // Second tap: confirm and close
+                prepTimeMediaId = playlist.id.rawValue
+                prepTimeMediaName = playlist.name
+                if let url = PrepTimeMusicManager.shared.artworkURL(for: playlist) {
+                    prepTimeMediaArtworkURL = url.absoluteString
+                }
+                confirmingPlaylistId = nil
+                PrepTimeMusicManager.shared.stop()
+                withAnimation(.snappy) {
+                    isPrepTimeMusicExpanded = false
+                }
+            } else {
+                // First tap: preview and enter confirm state
+                confirmingPlaylistId = playlist.id.rawValue
+                Task {
+                    try? await PrepTimeMusicManager.shared.preview(mediaId: playlist.id.rawValue)
+                }
+            }
+        } label: {
+            VStack(spacing: 8) {
+                // Artwork
+                ZStack {
+                    if let artwork = playlist.artwork {
+                        ArtworkImage(artwork, width: 80)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    } else {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(.systemGray4))
+                            .frame(width: 80, height: 80)
+                            .overlay(
+                                Image(systemName: "music.note.list")
+                                    .font(.title2)
+                                    .foregroundStyle(.secondary)
+                            )
+                    }
+
+                    // Selection indicator
+                    if isConfirming {
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.purple, lineWidth: 3)
+                            .frame(width: 80, height: 80)
+
+                        Image(systemName: "questionmark.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.white)
+                            .background(Circle().fill(Color.purple))
+                    } else if isSelected {
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.purple, lineWidth: 3)
+                            .frame(width: 80, height: 80)
+
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.white)
+                            .background(Circle().fill(Color.purple))
+                    }
+                }
+
+                // Name
+                Text(playlist.name)
+                    .font(.caption)
+                    .foregroundStyle(isSelected || isConfirming ? .purple : .primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 80)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
     @ViewBuilder
     private var prepDurationBubbles: some View {
         let steps = [5] + Array(stride(from: 10, through: 60, by: 5)) + [75, 90]
@@ -1058,6 +1339,17 @@ struct DepartureWizardView: View {
         wakeSoundId = departure.wakeSoundId
         leaveSoundId = departure.leaveSoundId
 
+        // Load prep time media settings
+        if let mediaType = departure.prepTimeMediaType,
+           let type = PrepTimeMediaType(rawValue: mediaType) {
+            prepTimeMediaType = type
+        } else {
+            prepTimeMediaType = .silence
+        }
+        prepTimeMediaId = departure.prepTimeMediaId
+        prepTimeMediaName = departure.prepTimeMediaName
+        prepTimeMediaArtworkURL = departure.prepTimeMediaArtworkURL
+
         // Load transport mode
         if let mode = TravelTimeService.TransportMode.allCases.first(where: { $0.rawValue == departure.transportType }) {
             transportMode = mode
@@ -1149,6 +1441,12 @@ struct DepartureWizardView: View {
         dep.preWakeSoundId = preWakeSoundId
         dep.wakeSoundId = wakeSoundId
         dep.leaveSoundId = leaveSoundId
+
+        // Save prep time media settings
+        dep.prepTimeMediaType = prepTimeMediaType == .silence ? nil : prepTimeMediaType.rawValue
+        dep.prepTimeMediaId = prepTimeMediaId
+        dep.prepTimeMediaName = prepTimeMediaName
+        dep.prepTimeMediaArtworkURL = prepTimeMediaArtworkURL
 
         // Schedule alarms with AlarmKit
         Task {

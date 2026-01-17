@@ -43,6 +43,12 @@ final class Departure {
     var wakeSoundId: String?
     var leaveSoundId: String?
 
+    // Prep time media settings
+    var prepTimeMediaType: String?       // "silence" or "appleMusic" (nil = silence)
+    var prepTimeMediaId: String?         // MusicKit persistent ID for the content
+    var prepTimeMediaName: String?       // Display name (e.g., "Morning Vibes")
+    var prepTimeMediaArtworkURL: String? // Artwork URL for display
+
     // AlarmKit Alarm IDs (for tracking and cancellation)
     var preWakeAlarmId: UUID?
     var mainWakeAlarmId: UUID?
@@ -130,6 +136,12 @@ final class Departure {
         self.preWakeSoundId = nil
         self.wakeSoundId = nil
         self.leaveSoundId = nil
+
+        // Prep time media defaults (nil = silence)
+        self.prepTimeMediaType = nil
+        self.prepTimeMediaId = nil
+        self.prepTimeMediaName = nil
+        self.prepTimeMediaArtworkURL = nil
 
         // Generate alarm IDs
         self.preWakeAlarmId = UUID()

@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import AlarmKit
+import AppIntents
 
 /// Metadata attached to alarms for identifying departure-related alarms
 @available(iOS 26.0, *)
@@ -116,6 +117,12 @@ final class AlarmKitManager: ObservableObject {
 
         // Main wake alarm (always on)
         if wakeUpTime > Date() {
+            // Save prep time settings to UserDefaults for the intent to access
+            departure.savePrepTimeSettingsForIntent()
+
+            // Create the dismiss intent that will trigger prep time music
+            let dismissIntent = DismissAlarmIntent(departureId: departure.id.uuidString)
+
             try await scheduleAlarm(
                 manager: manager,
                 id: departure.mainWakeAlarmId ?? UUID(),
@@ -125,7 +132,8 @@ final class AlarmKitManager: ObservableObject {
                 departureId: departure.id.uuidString,
                 alarmType: .mainWake,
                 destinationName: departure.destinationName ?? departure.label,
-                soundIdentifier: departure.wakeSoundId
+                soundIdentifier: departure.wakeSoundId,
+                stopIntent: dismissIntent
             )
         }
 
@@ -178,19 +186,22 @@ final class AlarmKitManager: ObservableObject {
         departureId: String,
         alarmType: DepartureAlarmMetadata.AlarmType,
         destinationName: String,
-        soundIdentifier: String? = nil
+        soundIdentifier: String? = nil,
+        stopIntent: DismissAlarmIntent? = nil
     ) async throws {
         // Note: soundIdentifier is stored for future AlarmKit sound API integration.
         // When AlarmKit supports custom sounds, we can pass AlertSound.named(soundIdentifier) here.
         _ = soundIdentifier
 
+        let stopButton = AlarmButton(
+            text: LocalizedStringResource(stringLiteral: alarmType == .mainWake ? "I'm Up" : "Dismiss"),
+            textColor: tintColor,
+            systemImageName: alarmType == .mainWake ? "sun.max.fill" : "checkmark"
+        )
+
         let alert = AlarmPresentation.Alert(
             title: LocalizedStringResource(stringLiteral: title),
-            stopButton: AlarmButton(
-                text: LocalizedStringResource(stringLiteral: alarmType == .mainWake ? "I'm Up" : "Dismiss"),
-                textColor: tintColor,
-                systemImageName: alarmType == .mainWake ? "sun.max.fill" : "checkmark"
-            )
+            stopButton: stopButton
         )
 
         let metadata = DepartureAlarmMetadata(
@@ -207,12 +218,24 @@ final class AlarmKitManager: ObservableObject {
 
         let schedule = Alarm.Schedule.fixed(date)
 
-        try await manager.schedule(
-            id: id,
-            configuration: .alarm(
-                schedule: schedule,
-                attributes: attributes
+        // Schedule with or without stop intent
+        if let stopIntent = stopIntent {
+            try await manager.schedule(
+                id: id,
+                configuration: .alarm(
+                    schedule: schedule,
+                    attributes: attributes,
+                    stopIntent: stopIntent
+                )
             )
-        )
+        } else {
+            try await manager.schedule(
+                id: id,
+                configuration: .alarm(
+                    schedule: schedule,
+                    attributes: attributes
+                )
+            )
+        }
     }
 }

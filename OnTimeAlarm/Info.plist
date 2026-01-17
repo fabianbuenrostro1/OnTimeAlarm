@@ -4,6 +4,8 @@
 <dict>
 	<key>NSAlarmKitUsageDescription</key>
 	<string>On Time Alarm schedules wake-up and departure alarms to help you arrive on time.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>On Time Alarm can play your music during your morning prep time to help you start the day.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>On Time Alarm needs your location to calculate travel time from your current location.</string>
 	<key>NSWeatherKitUsageDescription</key>
