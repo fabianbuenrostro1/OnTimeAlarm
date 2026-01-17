@@ -110,46 +110,41 @@ struct DepartureDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
+            VStack(alignment: .leading, spacing: 24) {
 
-                // Contextual timing phrase
-                Text(contextualTimingPhrase)
-                    .font(.title3)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 8)
+                // Toggle row - iOS Settings pattern
+                HStack {
+                    Text("Alarm active")
+                        .font(.body)
+                    Spacer()
+                    Toggle("", isOn: $departure.isEnabled)
+                        .labelsHidden()
+                        .tint(.orange)
+                }
+                .padding(.vertical, 12)
+                .padding(.horizontal, 16)
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                // Alert time
-                narrativeBlock(
-                    phrase: "you'll be alerted at",
-                    emphasis: timeFormatter.string(from: departure.wakeUpTime),
-                    isTime: true
-                )
+                // First paragraph - Wake up
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("You'll wake up at \(timeFormatter.string(from: departure.wakeUpTime))")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    Text("with \(TimeCalculator.formatDurationReadable(departure.prepDuration)) to get ready.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
 
-                // Prep duration
-                Text("with \(TimeCalculator.formatDurationReadable(departure.prepDuration)) to get ready")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                // Leave time
-                narrativeBlock(
-                    phrase: "then leave by",
-                    emphasis: timeFormatter.string(from: departure.departureTime),
-                    isTime: true
-                )
-
-                // Destination
-                narrativeBlock(
-                    phrase: "to \(transportVerb) to",
-                    emphasis: destinationDisplayName
-                )
-
-                // Arrival time
-                narrativeBlock(
-                    phrase: "and arrive by",
-                    emphasis: timeFormatter.string(from: departure.targetArrivalTime),
-                    isTime: true
-                )
+                // Second paragraph - Leave and arrive
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Leave by \(timeFormatter.string(from: departure.departureTime))")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                    Text("to arrive at \(destinationDisplayName) by \(timeFormatter.string(from: departure.targetArrivalTime)).")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
 
                 // Map Preview (smaller, supporting role)
                 MapPreviewView(
@@ -174,23 +169,18 @@ struct DepartureDetailView: View {
                 .tint(.blue)
             }
             .padding(.horizontal, 20)
+            .padding(.top, 8)
             .padding(.bottom, 40)
         }
-        .navigationTitle(departure.label)
+        .navigationTitle(contextualTimingPhrase)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                HStack(spacing: 16) {
-                    Toggle("", isOn: $departure.isEnabled)
-                        .labelsHidden()
-                        .tint(.orange)
-
-                    Button {
-                        showingEditor = true
-                    } label: {
-                        Image(systemName: "pencil")
-                    }
+                Button {
+                    showingEditor = true
+                } label: {
+                    Image(systemName: "pencil")
                 }
             }
         }
@@ -207,28 +197,6 @@ struct DepartureDetailView: View {
                 } else {
                     await AlarmKitManager.shared.cancelAlarms(for: departure)
                 }
-            }
-        }
-    }
-
-    // MARK: - Helper Views
-
-    @ViewBuilder
-    private func narrativeBlock(phrase: String, emphasis: String, isTime: Bool = false) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(phrase)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            if isTime {
-                Text(emphasis)
-                    .font(.system(size: 42, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
-            } else {
-                Text(emphasis)
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
             }
         }
     }
