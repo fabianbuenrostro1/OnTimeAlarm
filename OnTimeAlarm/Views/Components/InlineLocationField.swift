@@ -57,10 +57,16 @@ struct InlineLocationField: View {
     @ViewBuilder
     private var mainFieldContent: some View {
         HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(iconColor)
-                .frame(width: 32)
+            ZStack {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundStyle(iconColor)
+                Image(systemName: "mappin")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+            }
+            .frame(width: 32)
 
             if hasSelection && !isFocused {
                 // Display mode - show selected location

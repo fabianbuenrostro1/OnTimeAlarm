@@ -119,35 +119,31 @@ struct DepartureDetailView: View {
 
                 // Hero header with integrated toggle
                 HStack(alignment: .center) {
-                    HStack(spacing: 6) {
-                        Text("Off to")
+                    if isEditingLabel {
+                        TextField("Alarm", text: $departure.label)
                             .font(.largeTitle)
                             .fontWeight(.bold)
-
-                        if isEditingLabel {
-                            TextField("Work", text: $departure.label)
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .textFieldStyle(.plain)
-                                .focused($labelFieldFocused)
-                                .onSubmit {
+                            .italic()
+                            .textFieldStyle(.plain)
+                            .focused($labelFieldFocused)
+                            .onSubmit {
+                                isEditingLabel = false
+                            }
+                            .onChange(of: labelFieldFocused) { _, focused in
+                                if !focused {
                                     isEditingLabel = false
                                 }
-                                .onChange(of: labelFieldFocused) { _, focused in
-                                    if !focused {
-                                        isEditingLabel = false
-                                    }
-                                }
-                        } else {
-                            Text(departure.label.isEmpty ? "..." : departure.label)
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .underline(color: .secondary.opacity(0.4))
-                                .onTapGesture {
-                                    isEditingLabel = true
-                                    labelFieldFocused = true
-                                }
-                        }
+                            }
+                    } else {
+                        Text(departure.label.isEmpty ? "Alarm" : departure.label)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .italic()
+                            .underline(color: .secondary.opacity(0.4))
+                            .onTapGesture {
+                                isEditingLabel = true
+                                labelFieldFocused = true
+                            }
                     }
                     Spacer()
                     Toggle("", isOn: $departure.isEnabled)

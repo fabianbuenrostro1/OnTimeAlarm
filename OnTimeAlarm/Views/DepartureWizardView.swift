@@ -54,6 +54,7 @@ struct DepartureWizardView: View {
     @State private var showingAlarmSettings: Bool = false
     @State private var showingRepeatSelection: Bool = false
     @State private var showingPrepSelection: Bool = false
+    @State private var showingTimePicker: Bool = false
     
     private var isEditing: Bool { departure != nil }
     
@@ -112,7 +113,6 @@ struct DepartureWizardView: View {
                     Spacer(minLength: 100)
                 }
             }
-            .navigationTitle(isEditing ? "Edit Alarm" : "New Alarm")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -135,6 +135,10 @@ struct DepartureWizardView: View {
                 prepSettingsSheet
                 .presentationDetents([.fraction(0.5)])
             }
+            .sheet(isPresented: $showingTimePicker) {
+                timePickerSheet
+                .presentationDetents([.fraction(0.4)])
+            }
             .onChange(of: fromCoordinate?.latitude) { _, _ in
                 calculateTravelTime()
             }
@@ -154,6 +158,17 @@ struct DepartureWizardView: View {
     @ViewBuilder
     private var madLibsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
+            // Label/title field - pill style input
+            TextField("This trip is for...", text: $label)
+                .font(.title2)
+                .fontWeight(.semibold)
+                .italic()
+                .multilineTextAlignment(.center)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 20)
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+
             Text("I need to")
                 .font(.title3)
                 .foregroundStyle(.secondary)
@@ -198,7 +213,7 @@ struct DepartureWizardView: View {
                 locationName: $fromName,
                 locationAddress: $fromAddress,
                 placeholder: "Starting location",
-                icon: "location.fill",
+                icon: "circle.fill",
                 iconColor: .blue,
                 showUseMyLocation: true
             )
@@ -216,8 +231,8 @@ struct DepartureWizardView: View {
                 ),
                 locationAddress: $toAddress,
                 placeholder: "Destination location",
-                icon: "mappin.circle.fill",
-                iconColor: toCoordinate != nil ? .red : .gray
+                icon: "circle.fill",
+                iconColor: .red
             )
             .zIndex(1) // Ensure dropdown appears above other content
             .onChange(of: toName) { _, newValue in
@@ -226,33 +241,17 @@ struct DepartureWizardView: View {
                 }
             }
             
-            Text("by")
+            Text("arriving")
                 .font(.title3)
                 .foregroundStyle(.secondary)
-            
-            // Time chip with compact picker overlay
-            HStack(spacing: 12) {
-                Image(systemName: "clock.fill")
-                    .font(.title2)
-                    .foregroundStyle(.orange)
-                    .frame(width: 32)
-                
-                DatePicker(
-                    "",
-                    selection: $arrivalTime,
-                    displayedComponents: .hourAndMinute
-                )
-                .datePickerStyle(.compact)
-                .labelsHidden()
-                .tint(.orange)
-                
-                Spacer()
-            }
-            .padding(.vertical, 14)
-            .padding(.horizontal, 16)
-            .background(Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-            
+
+            chipButton(
+                icon: "clock.fill",
+                iconColor: .orange,
+                title: timeFormatter.string(from: arrivalTime),
+                action: { showingTimePicker = true }
+            )
+
             Text("repeating")
                 .font(.title3)
                 .foregroundStyle(.secondary)
@@ -308,11 +307,11 @@ struct DepartureWizardView: View {
             Text("Prep Time")
                 .font(.headline)
                 .padding(.top, 24)
-            
+
             prepDurationBubbles
-            
+
             Spacer()
-            
+
             Button("Done") {
                 showingPrepSelection = false
             }
@@ -324,7 +323,36 @@ struct DepartureWizardView: View {
             .padding(.bottom)
         }
     }
-    
+
+    @ViewBuilder
+    private var timePickerSheet: some View {
+        VStack(spacing: 24) {
+            Text("Arrival Time")
+                .font(.headline)
+                .padding(.top, 24)
+
+            DatePicker(
+                "",
+                selection: $arrivalTime,
+                displayedComponents: .hourAndMinute
+            )
+            .datePickerStyle(.wheel)
+            .labelsHidden()
+
+            Spacer()
+
+            Button("Done") {
+                showingTimePicker = false
+            }
+            .font(.headline)
+            .buttonStyle(.borderedProminent)
+            .tint(.orange)
+            .controlSize(.large)
+            .padding(.horizontal)
+            .padding(.bottom)
+        }
+    }
+
     @ViewBuilder
     private var prepDurationBubbles: some View {
         let steps = Array(stride(from: 10, through: 60, by: 5)) + [75, 90]
