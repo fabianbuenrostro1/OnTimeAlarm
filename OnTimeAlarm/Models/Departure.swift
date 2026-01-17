@@ -36,6 +36,12 @@ final class Departure {
 
     // Alarm Configuration
     var hasPreWakeAlarm: Bool  // Whether to show a gentle reminder 5 min before wake
+    var hasLeaveAlarm: Bool    // Whether to show a leave reminder
+
+    // Per-alarm sound identifiers (nil = use default)
+    var preWakeSoundId: String?
+    var wakeSoundId: String?
+    var leaveSoundId: String?
 
     // AlarmKit Alarm IDs (for tracking and cancellation)
     var preWakeAlarmId: UUID?
@@ -70,8 +76,9 @@ final class Departure {
 
     /// Total alarm count (for display purposes)
     var totalAlarmCount: Int {
-        var count = 2 // Main wake + Leave
+        var count = 1 // Main wake is always on
         if hasPreWakeAlarm { count += 1 }
+        if hasLeaveAlarm { count += 1 }
         return count
     }
 
@@ -84,11 +91,13 @@ final class Departure {
             times.append(preWake)
         }
 
-        // Main wake up alarm
+        // Main wake up alarm (always on)
         times.append(wakeUpTime)
 
-        // Leave alarm
-        times.append(departureTime)
+        // Leave alarm (if enabled)
+        if hasLeaveAlarm {
+            times.append(departureTime)
+        }
 
         return times
     }
@@ -115,6 +124,12 @@ final class Departure {
 
         // Alarm defaults
         self.hasPreWakeAlarm = true  // Enable pre-wake by default
+        self.hasLeaveAlarm = true    // Enable leave alarm by default
+
+        // Sound defaults (nil = use system default)
+        self.preWakeSoundId = nil
+        self.wakeSoundId = nil
+        self.leaveSoundId = nil
 
         // Generate alarm IDs
         self.preWakeAlarmId = UUID()

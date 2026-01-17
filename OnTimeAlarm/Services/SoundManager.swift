@@ -90,4 +90,10 @@ final class SoundManager {
     func displayName(for identifier: String) -> String {
         NotificationSoundType(rawValue: identifier)?.displayName ?? "Default"
     }
+
+    /// Get display name for an optional sound identifier (nil = Default)
+    func displayName(for identifier: String?) -> String {
+        guard let id = identifier else { return "Default" }
+        return NotificationSoundType(rawValue: id)?.displayName ?? "Default"
+    }
 }

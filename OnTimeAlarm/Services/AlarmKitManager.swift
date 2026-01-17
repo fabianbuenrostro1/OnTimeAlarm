@@ -108,12 +108,13 @@ final class AlarmKitManager: ObservableObject {
                     tintColor: .blue,
                     departureId: departure.id.uuidString,
                     alarmType: .preWake,
-                    destinationName: departure.destinationName ?? departure.label
+                    destinationName: departure.destinationName ?? departure.label,
+                    soundIdentifier: departure.preWakeSoundId
                 )
             }
         }
 
-        // Main wake alarm
+        // Main wake alarm (always on)
         if wakeUpTime > Date() {
             try await scheduleAlarm(
                 manager: manager,
@@ -123,12 +124,13 @@ final class AlarmKitManager: ObservableObject {
                 tintColor: .orange,
                 departureId: departure.id.uuidString,
                 alarmType: .mainWake,
-                destinationName: departure.destinationName ?? departure.label
+                destinationName: departure.destinationName ?? departure.label,
+                soundIdentifier: departure.wakeSoundId
             )
         }
 
-        // Leave alarm
-        if departureTime > Date() {
+        // Leave alarm (if enabled)
+        if departure.hasLeaveAlarm && departureTime > Date() {
             try await scheduleAlarm(
                 manager: manager,
                 id: departure.leaveAlarmId ?? UUID(),
@@ -137,11 +139,13 @@ final class AlarmKitManager: ObservableObject {
                 tintColor: .blue,
                 departureId: departure.id.uuidString,
                 alarmType: .leave,
-                destinationName: departure.destinationName ?? departure.label
+                destinationName: departure.destinationName ?? departure.label,
+                soundIdentifier: departure.leaveSoundId
             )
         }
 
-        print("AlarmKitManager: Scheduled alarms for '\(departure.label)'")
+        let alarmCount = (departure.hasPreWakeAlarm ? 1 : 0) + 1 + (departure.hasLeaveAlarm ? 1 : 0)
+        print("AlarmKitManager: Scheduled \(alarmCount) alarms for '\(departure.label)'")
     }
 
     @available(iOS 26.0, *)
@@ -173,8 +177,13 @@ final class AlarmKitManager: ObservableObject {
         tintColor: Color,
         departureId: String,
         alarmType: DepartureAlarmMetadata.AlarmType,
-        destinationName: String
+        destinationName: String,
+        soundIdentifier: String? = nil
     ) async throws {
+        // Note: soundIdentifier is stored for future AlarmKit sound API integration.
+        // When AlarmKit supports custom sounds, we can pass AlertSound.named(soundIdentifier) here.
+        _ = soundIdentifier
+
         let alert = AlarmPresentation.Alert(
             title: LocalizedStringResource(stringLiteral: title),
             stopButton: AlarmButton(

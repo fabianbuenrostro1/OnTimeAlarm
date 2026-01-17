@@ -46,17 +46,25 @@ struct DepartureWizardView: View {
     
     // Alarm Settings
     @State private var hasPreWakeAlarm: Bool = true
-    
+    @State private var hasLeaveAlarm: Bool = true
+
+    // Per-alarm sounds (nil = default)
+    @State private var preWakeSoundId: String? = nil
+    @State private var wakeSoundId: String? = nil
+    @State private var leaveSoundId: String? = nil
+
     // Repeat Days (1 = Sunday, 2 = Monday, ..., 7 = Saturday)
     @State private var repeatDays: Set<Int> = []
-    
-    // Sheets
-    @State private var showingAlarmSettings: Bool = false
 
     // Inline expansion
     @State private var isTimePickerExpanded: Bool = false
     @State private var isRepeatPickerExpanded: Bool = false
     @State private var isPrepPickerExpanded: Bool = false
+
+    // Sound picker expansion
+    @State private var isPreWakeSoundExpanded: Bool = false
+    @State private var isWakeSoundExpanded: Bool = false
+    @State private var isLeaveSoundExpanded: Bool = false
 
     // Custom prep time input
     @State private var isCustomPrepTime: Bool = false
@@ -130,9 +138,6 @@ struct DepartureWizardView: View {
                     .fontWeight(.semibold)
                     .disabled(!canSave)
                 }
-            }
-            .sheet(isPresented: $showingAlarmSettings) {
-                AlarmSettingsSheet(hasPreWakeAlarm: $hasPreWakeAlarm)
             }
             .onChange(of: fromCoordinate?.latitude) { _, _ in
                 calculateTravelTime()
@@ -593,20 +598,17 @@ struct DepartureWizardView: View {
     // MARK: - Alarm Sentence Section
     @ViewBuilder
     private var alarmSentenceSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("And I need")
-                .font(.title3)
-                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 20) {
+            // Pre-Wake Alarm (optional)
+            preWakeAlarmSection
 
-            chipButton(
-                icon: hasPreWakeAlarm ? "bell.badge" : "bell.fill",
-                iconColor: .orange,
-                title: alarmSummaryTitle,
-                subtitle: alarmSummarySubtitle,
-                action: { showingAlarmSettings = true }
-            )
+            // Wake Alarm (required)
+            wakeAlarmSection
 
-            Text("to ensure I'm up.")
+            // Leave Alarm (optional)
+            leaveAlarmSection
+
+            Text("to ensure I'm up and out.")
                 .font(.title3)
                 .foregroundStyle(.secondary)
         }
@@ -614,20 +616,232 @@ struct DepartureWizardView: View {
         .padding(.top, 8)
     }
 
-    private var alarmSummaryTitle: String {
-        if hasPreWakeAlarm {
-            return "3 alarms with snooze"
-        } else {
-            return "2 alarms with snooze"
+    // MARK: Pre-Wake Alarm
+    @ViewBuilder
+    private var preWakeAlarmSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("I'd like a")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+
+            // Alarm row with toggle
+            HStack(spacing: 12) {
+                Image(systemName: "bell")
+                    .font(.title2)
+                    .foregroundStyle(hasPreWakeAlarm ? .blue : .gray)
+                    .frame(width: 32)
+
+                Text("pre-wake alarm")
+                    .font(.headline)
+                    .foregroundStyle(hasPreWakeAlarm ? .primary : .secondary)
+
+                Spacer()
+
+                Toggle("", isOn: $hasPreWakeAlarm)
+                    .labelsHidden()
+                    .tint(.blue)
+            }
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+
+            // Sound selection (only if enabled)
+            if hasPreWakeAlarm {
+                Text("that sounds like")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+
+                soundChipButton(
+                    soundId: $preWakeSoundId,
+                    isExpanded: $isPreWakeSoundExpanded,
+                    accentColor: .blue
+                )
+
+                if isPreWakeSoundExpanded {
+                    soundPickerList(selection: $preWakeSoundId, isExpanded: $isPreWakeSoundExpanded)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
         }
     }
 
-    private var alarmSummarySubtitle: String? {
-        if hasPreWakeAlarm {
-            return "Pre-wake, wake up, and leave"
-        } else {
-            return "Wake up and leave"
+    // MARK: Wake Alarm
+    @ViewBuilder
+    private var wakeAlarmSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("And a")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+
+            // Alarm row (required - always on)
+            HStack(spacing: 12) {
+                Image(systemName: "bell.fill")
+                    .font(.title2)
+                    .foregroundStyle(.orange)
+                    .frame(width: 32)
+
+                Text("wake-up alarm")
+                    .font(.headline)
+
+                Spacer()
+
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+            }
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+
+            Text("that sounds like")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+
+            soundChipButton(
+                soundId: $wakeSoundId,
+                isExpanded: $isWakeSoundExpanded,
+                accentColor: .orange
+            )
+
+            if isWakeSoundExpanded {
+                soundPickerList(selection: $wakeSoundId, isExpanded: $isWakeSoundExpanded)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
+    }
+
+    // MARK: Leave Alarm
+    @ViewBuilder
+    private var leaveAlarmSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Plus a")
+                .font(.title3)
+                .foregroundStyle(.secondary)
+
+            // Alarm row with toggle
+            HStack(spacing: 12) {
+                Image(systemName: "car.fill")
+                    .font(.title2)
+                    .foregroundStyle(hasLeaveAlarm ? .blue : .gray)
+                    .frame(width: 32)
+
+                Text("leave reminder")
+                    .font(.headline)
+                    .foregroundStyle(hasLeaveAlarm ? .primary : .secondary)
+
+                Spacer()
+
+                Toggle("", isOn: $hasLeaveAlarm)
+                    .labelsHidden()
+                    .tint(.blue)
+            }
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+
+            // Sound selection (only if enabled)
+            if hasLeaveAlarm {
+                Text("that sounds like")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+
+                soundChipButton(
+                    soundId: $leaveSoundId,
+                    isExpanded: $isLeaveSoundExpanded,
+                    accentColor: .blue
+                )
+
+                if isLeaveSoundExpanded {
+                    soundPickerList(selection: $leaveSoundId, isExpanded: $isLeaveSoundExpanded)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+        }
+    }
+
+    // MARK: Sound Chip Button
+    @ViewBuilder
+    private func soundChipButton(
+        soundId: Binding<String?>,
+        isExpanded: Binding<Bool>,
+        accentColor: Color
+    ) -> some View {
+        Button {
+            withAnimation(.snappy) {
+                isExpanded.wrappedValue.toggle()
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Text(SoundManager.shared.displayName(for: soundId.wrappedValue))
+                    .font(.headline)
+
+                Image(systemName: "chevron.down")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .rotationEffect(.degrees(isExpanded.wrappedValue ? 180 : 0))
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: Sound Picker List
+    @ViewBuilder
+    private func soundPickerList(selection: Binding<String?>, isExpanded: Binding<Bool>) -> some View {
+        VStack(spacing: 8) {
+            // Default option
+            soundRow(name: "Default", identifier: nil, selection: selection, isExpanded: isExpanded)
+
+            ForEach(SoundManager.NotificationSoundType.allCases, id: \.rawValue) { sound in
+                soundRow(
+                    name: sound.displayName,
+                    identifier: sound.rawValue,
+                    selection: selection,
+                    isExpanded: isExpanded
+                )
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private func soundRow(
+        name: String,
+        identifier: String?,
+        selection: Binding<String?>,
+        isExpanded: Binding<Bool>
+    ) -> some View {
+        Button {
+            selection.wrappedValue = identifier
+            if let id = identifier {
+                SoundManager.shared.previewSound(id)
+            }
+            withAnimation(.snappy) {
+                isExpanded.wrappedValue = false
+            }
+        } label: {
+            HStack {
+                Text(name)
+                    .font(.subheadline)
+
+                Spacer()
+
+                if selection.wrappedValue == identifier {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(.orange)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color(.systemGray6))
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
     }
     
     @ViewBuilder
@@ -710,6 +924,12 @@ struct DepartureWizardView: View {
         travelTime = departure.staticTravelTime
 
         hasPreWakeAlarm = departure.hasPreWakeAlarm
+        hasLeaveAlarm = departure.hasLeaveAlarm
+
+        // Load per-alarm sounds
+        preWakeSoundId = departure.preWakeSoundId
+        wakeSoundId = departure.wakeSoundId
+        leaveSoundId = departure.leaveSoundId
 
         // Load transport mode
         if let mode = TravelTimeService.TransportMode.allCases.first(where: { $0.rawValue == departure.transportType }) {
@@ -795,7 +1015,13 @@ struct DepartureWizardView: View {
         dep.originLong = fromCoordinate?.longitude
 
         dep.hasPreWakeAlarm = hasPreWakeAlarm
+        dep.hasLeaveAlarm = hasLeaveAlarm
         dep.transportType = transportMode.rawValue
+
+        // Save per-alarm sounds
+        dep.preWakeSoundId = preWakeSoundId
+        dep.wakeSoundId = wakeSoundId
+        dep.leaveSoundId = leaveSoundId
 
         // Schedule alarms with AlarmKit
         Task {
