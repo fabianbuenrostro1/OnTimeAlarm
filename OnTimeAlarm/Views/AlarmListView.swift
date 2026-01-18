@@ -8,6 +8,9 @@ struct AlarmListView: View {
     @Query(sort: \Departure.targetArrivalTime) private var departures: [Departure]
 
     @State private var showingEditor = false
+    #if DEBUG
+    @State private var showingDebugMenu = false
+    #endif
 
     var body: some View {
         NavigationStack {
@@ -31,6 +34,13 @@ struct AlarmListView: View {
                 DepartureDetailView(departure: departure)
             }
             .toolbar {
+                #if DEBUG
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { showingDebugMenu = true }) {
+                        Image(systemName: "ladybug")
+                    }
+                }
+                #endif
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingEditor = true }) {
                         Image(systemName: "plus")
@@ -40,6 +50,11 @@ struct AlarmListView: View {
             .sheet(isPresented: $showingEditor) {
                 DepartureWizardView()
             }
+            #if DEBUG
+            .sheet(isPresented: $showingDebugMenu) {
+                DebugMenuView()
+            }
+            #endif
         }
         .onAppear {
             if locationManager.authorizationStatus == .notDetermined {

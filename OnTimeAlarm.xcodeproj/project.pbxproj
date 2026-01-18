@@ -3,17 +3,18 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A1B2C3D4E5F6071829304A5B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6071829304A5B6C7D /* Assets.xcassets */; };
 		11EAB5FF451D3F2CC572A371 /* DepartureDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D1F5D42BCC12477CA20703 /* DepartureDetailView.swift */; };
 		25F520E9E6714B5C9961FC28 /* OnTimeAlarmApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B07BCBCD4CC327E443EAA179 /* OnTimeAlarmApp.swift */; };
 		26D4EB16AF0B2E4F5264481E /* AlarmListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FADDBDDFDAEC7123C417A9E3 /* AlarmListView.swift */; };
+		28F239A9FFCAF3F581EC8F75 /* DebugMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFD579DC9AA3F27CBB7768C5 /* DebugMenuView.swift */; };
 		306854E41A7C28DFFB46D5FF /* TravelTimeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59821B515689CD008DA25C5B /* TravelTimeService.swift */; };
 		3584035B89823E7DAED25A19 /* AlarmRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFBF623B085EDE0F66257C8 /* AlarmRowView.swift */; };
 		3D7ABD5AEF80C49315FA2374 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CCBF702C7CA8403572AEC52 /* LocationManager.swift */; };
+		3DB4F280A00E04D7BCA2909C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1D97D542F2AE380E6CBBA299 /* Assets.xcassets */; };
 		4A56013B7FEEBAE70062A7AD /* AlarmKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57211AAB611BE6203A07F680 /* AlarmKitManager.swift */; };
 		547C290D3CB99D68F0FE0408 /* MapPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7529CB3FB337E37EE376F570 /* MapPreviewView.swift */; };
 		7228ED227C6E9F418AA10A3D /* TimeCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD834537C082148EE9D02EC3 /* TimeCalculator.swift */; };
@@ -31,8 +32,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		C3D4E5F6071829304A5B6C7D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0C98AEBC096AEF0A64A0AAE7 /* Departure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Departure.swift; sourceTree = "<group>"; };
+		1D97D542F2AE380E6CBBA299 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		22A31552A5B438BE24CCED42 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		26EB9E3019A0F4FAC5ECFDD7 /* EmojiPickerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiPickerButton.swift; sourceTree = "<group>"; };
 		4C584C3E52841623076C2730 /* SoundManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundManager.swift; sourceTree = "<group>"; };
@@ -41,7 +42,7 @@
 		57211AAB611BE6203A07F680 /* AlarmKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmKitManager.swift; sourceTree = "<group>"; };
 		59821B515689CD008DA25C5B /* TravelTimeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelTimeService.swift; sourceTree = "<group>"; };
 		5C8190A45D1AFA6A181161D0 /* LocationSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchService.swift; sourceTree = "<group>"; };
-		6462AA348A7FD628ED37DD83 /* OnTimeAlarm.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OnTimeAlarm.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6462AA348A7FD628ED37DD83 /* OnTimeAlarm.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OnTimeAlarm.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7529CB3FB337E37EE376F570 /* MapPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapPreviewView.swift; sourceTree = "<group>"; };
 		77FD3EEFED82C255DBC5D521 /* InlineLocationField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineLocationField.swift; sourceTree = "<group>"; };
 		818132E5C54FA7C506016517 /* PrepTimeMusicManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrepTimeMusicManager.swift; sourceTree = "<group>"; };
@@ -55,6 +56,7 @@
 		F05D665D3FE04DC9FB53724F /* DepartureCardComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartureCardComponents.swift; sourceTree = "<group>"; };
 		FADDBDDFDAEC7123C417A9E3 /* AlarmListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmListView.swift; sourceTree = "<group>"; };
 		FD834537C082148EE9D02EC3 /* TimeCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeCalculator.swift; sourceTree = "<group>"; };
+		FFD579DC9AA3F27CBB7768C5 /* DebugMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugMenuView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -85,6 +87,7 @@
 			children = (
 				FADDBDDFDAEC7123C417A9E3 /* AlarmListView.swift */,
 				4EFBF623B085EDE0F66257C8 /* AlarmRowView.swift */,
+				FFD579DC9AA3F27CBB7768C5 /* DebugMenuView.swift */,
 				F05D665D3FE04DC9FB53724F /* DepartureCardComponents.swift */,
 				B6D1F5D42BCC12477CA20703 /* DepartureDetailView.swift */,
 				97EEF29135637BDF9FCEDB7A /* DepartureWizardView.swift */,
@@ -131,7 +134,7 @@
 		98A10BBA81EFD47A7ED2A1DE /* OnTimeAlarm */ = {
 			isa = PBXGroup;
 			children = (
-				C3D4E5F6071829304A5B6C7D /* Assets.xcassets */,
+				1D97D542F2AE380E6CBBA299 /* Assets.xcassets */,
 				B8C2F1AB68748CE69EE057CF /* Info.plist */,
 				8505103E8A8F6CF881AE5A57 /* OnTimeAlarm.entitlements */,
 				B07BCBCD4CC327E443EAA179 /* OnTimeAlarmApp.swift */,
@@ -160,7 +163,7 @@
 			buildConfigurationList = 45B0F26DB35B8A33B0A09466 /* Build configuration list for PBXNativeTarget "OnTimeAlarm" */;
 			buildPhases = (
 				851DD4A7843F3FCF9DB692D1 /* Sources */,
-				E5F6071829304A5B6C7D8E9F /* Resources */,
+				FA725882948673F7E5BEB785 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -180,7 +183,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 1500;
 			};
 			buildConfigurationList = 79596A676B9D7001BE53BA3C /* Build configuration list for PBXProject "OnTimeAlarm" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -192,6 +195,7 @@
 			);
 			mainGroup = A8004E6DC2C395E350A6B6B5;
 			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -199,6 +203,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FA725882948673F7E5BEB785 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3DB4F280A00E04D7BCA2909C /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		851DD4A7843F3FCF9DB692D1 /* Sources */ = {
@@ -208,6 +223,7 @@
 				4A56013B7FEEBAE70062A7AD /* AlarmKitManager.swift in Sources */,
 				26D4EB16AF0B2E4F5264481E /* AlarmListView.swift in Sources */,
 				3584035B89823E7DAED25A19 /* AlarmRowView.swift in Sources */,
+				28F239A9FFCAF3F581EC8F75 /* DebugMenuView.swift in Sources */,
 				9510E4BBC7173FE58CD34A12 /* Departure.swift in Sources */,
 				74918DC7570A0E419AD77895 /* DepartureCardComponents.swift in Sources */,
 				11EAB5FF451D3F2CC572A371 /* DepartureDetailView.swift in Sources */,
@@ -229,17 +245,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXResourcesBuildPhase section */
-		E5F6071829304A5B6C7D8E9F /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A1B2C3D4E5F6071829304A5B /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
 		139164C9E6E30EBCEA30A909 /* Debug */ = {
@@ -304,10 +309,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = ZSZ62LWC22;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -328,7 +331,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -370,10 +372,8 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = ZSZ62LWC22;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -387,7 +387,6 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;

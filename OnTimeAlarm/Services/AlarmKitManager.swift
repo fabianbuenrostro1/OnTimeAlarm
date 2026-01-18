@@ -174,6 +174,110 @@ final class AlarmKitManager: ObservableObject {
         print("AlarmKitManager: Cancelled alarms for '\(departure.label)'")
     }
 
+    // MARK: - Debug/Test Methods
+
+    /// Track test alarm IDs for cleanup
+    @Published private(set) var testAlarmIds: [UUID] = []
+
+    /// Get human-readable authorization status
+    func getAuthorizationStatusString() -> String {
+        if #available(iOS 26.0, *) {
+            let manager = AlarmManager.shared
+            switch manager.authorizationState {
+            case .authorized:
+                return "Authorized"
+            case .denied:
+                return "Denied"
+            case .notDetermined:
+                return "Not Determined"
+            @unknown default:
+                return "Unknown"
+            }
+        } else {
+            return "iOS 26+ Required"
+        }
+    }
+
+    /// Check if iOS 26+ is available for AlarmKit
+    var isAlarmKitAvailable: Bool {
+        if #available(iOS 26.0, *) {
+            return true
+        }
+        return false
+    }
+
+    /// Schedule a test alarm that fires after the specified number of seconds
+    func scheduleTestAlarm(inSeconds seconds: TimeInterval) async throws -> UUID {
+        let alarmId = UUID()
+
+        if #available(iOS 26.0, *) {
+            let manager = AlarmManager.shared
+            let fireDate = Date().addingTimeInterval(seconds)
+
+            let stopButton = AlarmButton(
+                text: "Stop Test",
+                textColor: .red,
+                systemImageName: "xmark.circle.fill"
+            )
+
+            let alert = AlarmPresentation.Alert(
+                title: LocalizedStringResource(stringLiteral: "Test Alarm"),
+                stopButton: stopButton
+            )
+
+            let metadata = DepartureAlarmMetadata(
+                departureId: "test-\(alarmId.uuidString)",
+                alarmType: .mainWake,
+                destinationName: "Debug Test"
+            )
+
+            let attributes = AlarmAttributes(
+                presentation: AlarmPresentation(alert: alert),
+                metadata: metadata,
+                tintColor: .red
+            )
+
+            let schedule = Alarm.Schedule.fixed(fireDate)
+
+            _ = try await manager.schedule(
+                id: alarmId,
+                configuration: .alarm(
+                    schedule: schedule,
+                    attributes: attributes
+                )
+            )
+
+            testAlarmIds.append(alarmId)
+            print("AlarmKitManager: Scheduled test alarm \(alarmId) for \(fireDate)")
+        } else {
+            print("AlarmKitManager: [Stub] Would schedule test alarm (iOS 26 required)")
+        }
+
+        return alarmId
+    }
+
+    /// Cancel a specific test alarm
+    func cancelTestAlarm(id: UUID) async {
+        if #available(iOS 26.0, *) {
+            let manager = AlarmManager.shared
+            try? await manager.cancel(id: id)
+            testAlarmIds.removeAll { $0 == id }
+            print("AlarmKitManager: Cancelled test alarm \(id)")
+        }
+    }
+
+    /// Cancel all test alarms
+    func cancelAllTestAlarms() async {
+        if #available(iOS 26.0, *) {
+            let manager = AlarmManager.shared
+            for id in testAlarmIds {
+                try? await manager.cancel(id: id)
+            }
+            print("AlarmKitManager: Cancelled \(testAlarmIds.count) test alarms")
+            testAlarmIds.removeAll()
+        }
+    }
+
     // MARK: - Private Helpers
 
     @available(iOS 26.0, *)
