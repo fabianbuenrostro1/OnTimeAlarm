@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A1B2C3D4E5F6071829304A5B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6071829304A5B6C7D /* Assets.xcassets */; };
 		11EAB5FF451D3F2CC572A371 /* DepartureDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D1F5D42BCC12477CA20703 /* DepartureDetailView.swift */; };
 		25F520E9E6714B5C9961FC28 /* OnTimeAlarmApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B07BCBCD4CC327E443EAA179 /* OnTimeAlarmApp.swift */; };
 		26D4EB16AF0B2E4F5264481E /* AlarmListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FADDBDDFDAEC7123C417A9E3 /* AlarmListView.swift */; };
@@ -30,6 +31,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C3D4E5F6071829304A5B6C7D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0C98AEBC096AEF0A64A0AAE7 /* Departure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Departure.swift; sourceTree = "<group>"; };
 		22A31552A5B438BE24CCED42 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		26EB9E3019A0F4FAC5ECFDD7 /* EmojiPickerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiPickerButton.swift; sourceTree = "<group>"; };
@@ -129,6 +131,7 @@
 		98A10BBA81EFD47A7ED2A1DE /* OnTimeAlarm */ = {
 			isa = PBXGroup;
 			children = (
+				C3D4E5F6071829304A5B6C7D /* Assets.xcassets */,
 				B8C2F1AB68748CE69EE057CF /* Info.plist */,
 				8505103E8A8F6CF881AE5A57 /* OnTimeAlarm.entitlements */,
 				B07BCBCD4CC327E443EAA179 /* OnTimeAlarmApp.swift */,
@@ -157,6 +160,7 @@
 			buildConfigurationList = 45B0F26DB35B8A33B0A09466 /* Build configuration list for PBXNativeTarget "OnTimeAlarm" */;
 			buildPhases = (
 				851DD4A7843F3FCF9DB692D1 /* Sources */,
+				E5F6071829304A5B6C7D8E9F /* Resources */,
 			);
 			buildRules = (
 			);
@@ -176,7 +180,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2620;
 			};
 			buildConfigurationList = 79596A676B9D7001BE53BA3C /* Build configuration list for PBXProject "OnTimeAlarm" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -226,6 +230,17 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXResourcesBuildPhase section */
+		E5F6071829304A5B6C7D8E9F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1B2C3D4E5F6071829304A5B /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin XCBuildConfiguration section */
 		139164C9E6E30EBCEA30A909 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -233,7 +248,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZSZ62LWC22;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OnTimeAlarm/Info.plist;
 				INFOPLIST_GENERATION_MODE = GeneratedFile;
@@ -290,8 +304,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = ZSZ62LWC22;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -312,6 +328,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -353,8 +370,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = ZSZ62LWC22;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -368,6 +387,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -380,7 +400,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = ZSZ62LWC22;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OnTimeAlarm/Info.plist;
 				INFOPLIST_GENERATION_MODE = GeneratedFile;

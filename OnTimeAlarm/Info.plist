@@ -12,5 +12,7 @@
 	<string>On Time Alarm uses weather data to show conditions at your destination when you arrive.</string>
 	<key>UIRequiresFullScreen</key>
 	<true/>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 </dict>
 </plist>
