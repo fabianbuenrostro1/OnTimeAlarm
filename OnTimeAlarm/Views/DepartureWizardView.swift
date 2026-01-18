@@ -1414,10 +1414,6 @@ struct DepartureWizardView: View {
             modelContext.insert(dep)
         }
         
-        print("----- DEBUG: SAVING DEPARTURE -----")
-        dump(dep)
-        print("-----------------------------------")
-        
         dep.label = label.isEmpty ? (toName ?? "Alarm") : label
         dep.targetArrivalTime = arrivalTime
         dep.prepDuration = prepDuration
@@ -1447,6 +1443,24 @@ struct DepartureWizardView: View {
         dep.prepTimeMediaId = prepTimeMediaId
         dep.prepTimeMediaName = prepTimeMediaName
         dep.prepTimeMediaArtworkURL = prepTimeMediaArtworkURL
+
+        // Debug logging AFTER all assignments
+        print("----- DEBUG: SAVING DEPARTURE -----")
+        print("State vars - toCoordinate: \(String(describing: toCoordinate))")
+        print("State vars - fromCoordinate: \(String(describing: fromCoordinate))")
+        print("Departure - destinationLat: \(String(describing: dep.destinationLat))")
+        print("Departure - originLat: \(String(describing: dep.originLat))")
+        dump(dep)
+        print("-----------------------------------")
+
+        // Explicitly save to SwiftData before dismissing
+        do {
+            try modelContext.save()
+            print("SwiftData: Departure saved successfully - \(dep.label)")
+        } catch {
+            print("SwiftData: Failed to save departure: \(error)")
+            return  // Don't dismiss if save failed
+        }
 
         // Schedule alarms with AlarmKit
         Task {
