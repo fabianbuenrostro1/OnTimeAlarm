@@ -94,7 +94,11 @@ struct DepartureWizardView: View {
     @State private var isCustomPrepTime: Bool = false
     @State private var customPrepMinutes: String = ""
     @FocusState private var isCustomPrepFocused: Bool
-    
+
+    #if DEBUG
+    @State private var debugMinutesFromNow: Int = 2
+    #endif
+
     private var isEditing: Bool { departure != nil }
     
     // MARK: - Calculations
@@ -408,6 +412,10 @@ struct DepartureWizardView: View {
 
             // Prep time music picker
             prepTimeMusicPicker
+
+            #if DEBUG
+            debugQuickTestSection
+            #endif
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
@@ -1473,6 +1481,93 @@ struct DepartureWizardView: View {
 
         dismiss()
     }
+
+    // MARK: - DEBUG Quick Test
+    #if DEBUG
+    @ViewBuilder
+    private var debugQuickTestSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Divider()
+                .padding(.vertical, 8)
+
+            Text("DEBUG: Quick Test")
+                .font(.headline)
+                .foregroundStyle(.red)
+
+            HStack(spacing: 12) {
+                Text("Fire wake alarm in:")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                Picker("Minutes", selection: $debugMinutesFromNow) {
+                    ForEach([1, 2, 3, 5], id: \.self) { min in
+                        Text("\(min) min").tag(min)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 200)
+            }
+
+            Button {
+                applyDebugTiming()
+            } label: {
+                HStack {
+                    Image(systemName: "clock.badge.exclamationmark.fill")
+                    Text("Set Times for Quick Test")
+                }
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.white)
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity)
+                .background(Color.red)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+
+            Text("Sets arrival time so wake alarm fires in \(debugMinutesFromNow) min. Fill locations first!")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func applyDebugTiming() {
+        let now = Date()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss"
+
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("DEBUG QUICK TEST - APPLYING TIMING")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("Current time: \(formatter.string(from: now))")
+        print("Minutes from now: \(debugMinutesFromNow)")
+        print("Prep duration: \(Int(prepDuration / 60)) min")
+        print("Travel time: \(Int(travelTime / 60)) min")
+
+        let targetWakeTime = now.addingTimeInterval(TimeInterval(debugMinutesFromNow * 60))
+        print("Target wake time: \(formatter.string(from: targetWakeTime))")
+
+        // arrivalTime = wakeUpTime + prepDuration + travelTime
+        let calculatedArrival = targetWakeTime
+            .addingTimeInterval(prepDuration)
+            .addingTimeInterval(travelTime)
+
+        arrivalTime = calculatedArrival
+        print("Calculated arrival time: \(formatter.string(from: calculatedArrival))")
+
+        // Also enable all alarms for full sequence test
+        hasPreWakeAlarm = true
+        hasLeaveAlarm = true
+
+        print("Enabled: Pre-wake alarm, Wake alarm, Leave alarm")
+        print("Sounds configured:")
+        print("   Pre-wake: \(preWakeSoundId ?? "default")")
+        print("   Wake: \(wakeSoundId ?? "default")")
+        print("   Leave: \(leaveSoundId ?? "default")")
+        print("Prep music: \(prepTimeMediaType.rawValue) - \(prepTimeMediaName ?? "none")")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("Now tap SAVE to schedule the alarms!")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    }
+    #endif
 }
 
 #Preview {

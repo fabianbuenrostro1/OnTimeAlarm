@@ -97,10 +97,22 @@ final class AlarmKitManager: ObservableObject {
         let wakeUpTime = departure.wakeUpTime
         let departureTime = departure.departureTime
 
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss"
+
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("ALARMKIT: SCHEDULING ALARMS FOR '\(departure.label)'")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("Current time: \(formatter.string(from: Date()))")
+        print("Calculated wake time: \(formatter.string(from: wakeUpTime))")
+        print("Calculated departure time: \(formatter.string(from: departureTime))")
+        print("Target arrival: \(formatter.string(from: departure.targetArrivalTime))")
+
         // Pre-wake alarm (if enabled) - 5 minutes before wake time
         if departure.hasPreWakeAlarm {
             let preWakeTime = wakeUpTime.addingTimeInterval(-5 * 60)
             if preWakeTime > Date() {
+                print("Scheduling PRE-WAKE alarm at \(formatter.string(from: preWakeTime)) (sound: \(departure.preWakeSoundId ?? "default"))")
                 try await scheduleAlarm(
                     manager: manager,
                     id: departure.preWakeAlarmId ?? UUID(),
@@ -112,6 +124,9 @@ final class AlarmKitManager: ObservableObject {
                     destinationName: departure.destinationName ?? departure.label,
                     soundIdentifier: departure.preWakeSoundId
                 )
+                print("   Pre-wake scheduled successfully")
+            } else {
+                print("   Pre-wake time already passed, skipping")
             }
         }
 
@@ -123,6 +138,8 @@ final class AlarmKitManager: ObservableObject {
             // Create the dismiss intent that will trigger prep time music
             let dismissIntent = DismissAlarmIntent(departureId: departure.id.uuidString)
 
+            print("Scheduling MAIN WAKE alarm at \(formatter.string(from: wakeUpTime)) (sound: \(departure.wakeSoundId ?? "default"))")
+            print("   Prep music configured: \(departure.prepTimeMediaType ?? "none")")
             try await scheduleAlarm(
                 manager: manager,
                 id: departure.mainWakeAlarmId ?? UUID(),
@@ -135,10 +152,14 @@ final class AlarmKitManager: ObservableObject {
                 soundIdentifier: departure.wakeSoundId,
                 stopIntent: dismissIntent
             )
+            print("   Main wake scheduled successfully with DismissIntent")
+        } else {
+            print("   Wake time already passed, skipping")
         }
 
         // Leave alarm (if enabled)
         if departure.hasLeaveAlarm && departureTime > Date() {
+            print("Scheduling LEAVE alarm at \(formatter.string(from: departureTime)) (sound: \(departure.leaveSoundId ?? "default"))")
             try await scheduleAlarm(
                 manager: manager,
                 id: departure.leaveAlarmId ?? UUID(),
@@ -150,10 +171,13 @@ final class AlarmKitManager: ObservableObject {
                 destinationName: departure.destinationName ?? departure.label,
                 soundIdentifier: departure.leaveSoundId
             )
+            print("   Leave alarm scheduled successfully")
         }
 
         let alarmCount = (departure.hasPreWakeAlarm ? 1 : 0) + 1 + (departure.hasLeaveAlarm ? 1 : 0)
-        print("AlarmKitManager: Scheduled \(alarmCount) alarms for '\(departure.label)'")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("TOTAL: Scheduled \(alarmCount) alarms for '\(departure.label)'")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     }
 
     @available(iOS 26.0, *)
@@ -243,7 +267,8 @@ final class AlarmKitManager: ObservableObject {
                 id: alarmId,
                 configuration: .alarm(
                     schedule: schedule,
-                    attributes: attributes
+                    attributes: attributes,
+                    sound: .default
                 )
             )
 
@@ -293,8 +318,8 @@ final class AlarmKitManager: ObservableObject {
         soundIdentifier: String? = nil,
         stopIntent: DismissAlarmIntent? = nil
     ) async throws {
-        // Note: soundIdentifier is stored for future AlarmKit sound API integration.
-        // When AlarmKit supports custom sounds, we can pass AlertSound.named(soundIdentifier) here.
+        // Note: Using .default sound for now. To use custom sounds, bundle .caf files
+        // and use AlertSound.named(soundIdentifier) instead.
         _ = soundIdentifier
 
         let stopButton = AlarmButton(
@@ -329,7 +354,8 @@ final class AlarmKitManager: ObservableObject {
                 configuration: .alarm(
                     schedule: schedule,
                     attributes: attributes,
-                    stopIntent: stopIntent
+                    stopIntent: stopIntent,
+                    sound: .default
                 )
             )
         } else {
@@ -337,9 +363,14 @@ final class AlarmKitManager: ObservableObject {
                 id: id,
                 configuration: .alarm(
                     schedule: schedule,
-                    attributes: attributes
+                    attributes: attributes,
+                    sound: .default
                 )
             )
         }
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm:ss"
+        print("   AlarmKit.schedule() called: id=\(id.uuidString.prefix(8)), date=\(formatter.string(from: date)), type=\(alarmType.rawValue), sound=default ✓")
     }
 }

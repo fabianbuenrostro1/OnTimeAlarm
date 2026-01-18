@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -42,7 +42,7 @@
 		57211AAB611BE6203A07F680 /* AlarmKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmKitManager.swift; sourceTree = "<group>"; };
 		59821B515689CD008DA25C5B /* TravelTimeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelTimeService.swift; sourceTree = "<group>"; };
 		5C8190A45D1AFA6A181161D0 /* LocationSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationSearchService.swift; sourceTree = "<group>"; };
-		6462AA348A7FD628ED37DD83 /* OnTimeAlarm.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OnTimeAlarm.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6462AA348A7FD628ED37DD83 /* OnTimeAlarm.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OnTimeAlarm.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7529CB3FB337E37EE376F570 /* MapPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapPreviewView.swift; sourceTree = "<group>"; };
 		77FD3EEFED82C255DBC5D521 /* InlineLocationField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InlineLocationField.swift; sourceTree = "<group>"; };
 		818132E5C54FA7C506016517 /* PrepTimeMusicManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrepTimeMusicManager.swift; sourceTree = "<group>"; };
@@ -195,7 +195,6 @@
 			);
 			mainGroup = A8004E6DC2C395E350A6B6B5;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -253,6 +252,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZSZ62LWC22;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OnTimeAlarm/Info.plist;
 				INFOPLIST_GENERATION_MODE = GeneratedFile;
@@ -399,6 +399,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ZSZ62LWC22;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OnTimeAlarm/Info.plist;
 				INFOPLIST_GENERATION_MODE = GeneratedFile;
